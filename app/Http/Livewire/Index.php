@@ -113,10 +113,13 @@ class Index extends Component
     {
         $this->validate();
 
+        if (empty($this->failureTimes[$index]['cumulative_failure_time'])) {
+            $this->alert('error', 'Please enter the cumulative failure time field.');
+            return;
+        }
         //ni check new input lebih sikit dari atas
         if ($index > 0 && $this->failureTimes[$index]['cumulative_failure_time'] <= $this->failureTimes[$index - 1]['cumulative_failure_time']) {
             $this->alert('error', 'Please enter the value greater than the previous value.');
-
             return;
         } //Todo:: do validation
 

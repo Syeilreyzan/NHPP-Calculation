@@ -142,7 +142,7 @@
 
                         <div class="flex flex-col items-center py-4 rounded-lg bg-[#e4e4e4] text-[#8F8F8F]">
                             <div class="text-lg">
-                                {{ number_format($total , 3) }}
+                                {{ number_format($total , 2) }}
                             </div>
                             {{ __('Sum of In(Cum. TTF)') }}
                         </div>
