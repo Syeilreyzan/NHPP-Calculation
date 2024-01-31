@@ -1,18 +1,18 @@
 <div>
     <div class="w-full p-6 flex flex-col gap-5">
-        <div class="flex flex-col lg:flex-row justify-start lg:justify-between lg:items-center">
-            <div class="text-2xl">
-                {{ __('NHPP Single System') }}
+        <div class="flex justify-between items-center">
+            <div class=" flex flex-col">
+                <h1 class="text-2xl">{{ __('NHPP Single System') }}</h1>
             </div>
             {{-- Breadcrum --}}
-            <div class="lg:p-4">
+            <div class="p-4">
                 {{ __('Dashboard') }}
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row bg-white lg:rounded-t-xl lg:h-96">
-            <div class="w-full lg:w-3/12 grid grid-cols-1 divide-y">
-                <div class="w-full flex items-center divide-x px-2 py-6 bg-blue-900 text-white lg:rounded-tl-xl">
+        <div class="flex bg-white rounded-t-xl h-96">
+            <div class="w-3/12 grid grid-cols-1 divide-y rounded-xl">
+                <div class="w-full flex items-center divide-x px-2 py-6 bg-blue-900 text-white rounded-tl-xl">
                     <div class="w-[30%] text-center text-2xl">
                         &beta;
                     </div>
@@ -42,17 +42,17 @@
                     </div>
                 </div>
             </div>
-            <div class="w-full flex flex-col lg:flex-row gap-4 p-4 max-h-screen">
+            <div class="w-full flex gap-4 p-4">
                 <div class="w-full overflow-auto">
                     <table class="w-full ">
-                        <thead class="sticky top-0 bg-white lg:rounded-t-xl">
+                        <thead class="sticky top-0 bg-white rounded-t-xl">
                             <tr class="bg-gray-200">
-                                <th class="py-4 lg:rounded-tl-xl">{{ __('No. of Failure') }}</th>
+                                <th class="py-4 rounded-tl-xl">{{ __('No. of Failure') }}</th>
                                 <th class="py-4 w-2/12">{{ __('Cum. Failure Time') }}</th>
                                 <th class="py-4">{{ __('Time Between Failure') }}</th>
                                 <th class="py-4">{{ __('Cum MTBF') }}</th>
                                 <th class="py-4">{{ __('ln (Cum. Failure time)') }}</th>
-                                <th class="py-4 lg:rounded-tr-xl">{{ __('ln (T*/ti)') }}</th>
+                                <th class="py-4 rounded-tr-xl">{{ __('ln (T*/ti)') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -105,7 +105,7 @@
                     </table>
                 </div>
 
-                <div class="lg:w-5/12 flex flex-col gap-4">
+                <div class="w-5/12 flex flex-col gap-4">
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
                             <h1 class="text-2xl">Result</h1>
@@ -151,8 +151,8 @@
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-4 w-full">
-            <div class="w-full lg:w-1/2 divide-y-2 p-4 border rounded-bl-xl flex flex-col gap-4 bg-white">
+        <div class="flex gap-4 w-full">
+            <div class="w-1/2 divide-y-2 p-4 border rounded-bl-xl flex flex-col gap-4 bg-white">
                 <div class="font-inter font-medium text-lg text-gray-900">
                     {{ __('Time VS MTBF') }}
                 </div>
@@ -160,7 +160,7 @@
                     <canvas wire:ignore id="timeVsMtbfChart"></canvas>
                 </div>
             </div>
-            <div class="w-full lg:w-1/2 divide-y-2 p-4 border rounded-br-xl flex flex-col gap-4 bg-white">
+            <div class="w-1/2 divide-y-2 p-4 border rounded-br-xl flex flex-col gap-4 bg-white">
                 <div class="font-inter font-medium text-lg text-gray-900">
                     {{ __('Time VS Predicted Number of Failure') }}
                 </div>
