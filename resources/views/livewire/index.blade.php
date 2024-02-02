@@ -1,5 +1,5 @@
 <div>
-    <div class="w-full p-6 flex flex-col gap-5">
+    <div class="w-full p-6 flex flex-col gap-3">
         <div class="flex justify-between items-center">
             <div class=" flex flex-col">
                 <h1 class="text-2xl">{{ __('NHPP Single System') }}</h1>
@@ -10,7 +10,7 @@
             </div>
         </div>
 
-        <div class="flex bg-white rounded-t-xl h-96">
+        <div class="flex bg-white rounded-t-xl shadow-md h-96">
             <div class="w-3/12 grid grid-cols-1 divide-y rounded-xl">
                 <div class="w-full flex items-center divide-x px-2 py-6 bg-blue-900 text-white rounded-tl-xl">
                     <div class="w-[30%] text-center text-2xl">
@@ -111,10 +111,21 @@
                             <h1 class="text-2xl">Result</h1>
                             <h6>Estimated Parameters</h6>
                         </div>
-                        <div class="bg-green-200 p-5 flex items-center justify-center rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#1CCA0D" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                            </svg>
+                        <div class="flex gap-2">
+                            <div x-data="{ refreshPage: 'Refresh!' }">
+                                <button x-tooltip="refreshPage"
+                                    @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
+                                    wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                                    <x-icons.refresh />
+                                </button>
+                            </div>
+                            <div x-data="{ generatePdf: 'Export to PDF' }">
+                                <button x-tooltip="generatePdf"
+                                    @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
+                                    wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                                    <x-icons.document />
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-2 h-auto">
@@ -151,8 +162,8 @@
             </div>
         </div>
 
-        <div class="flex gap-4 w-full">
-            <div class="w-1/2 divide-y-2 p-4 border rounded-bl-xl flex flex-col gap-4 bg-white">
+        <div class="flex gap-3 w-full">
+            <div class="w-1/2 divide-y-2 p-4 shadow-md rounded-bl-xl flex flex-col gap-4 bg-white">
                 <div class="font-inter font-medium text-lg text-gray-900">
                     {{ __('Time VS MTBF') }}
                 </div>
@@ -160,7 +171,7 @@
                     <canvas wire:ignore id="timeVsMtbfChart"></canvas>
                 </div>
             </div>
-            <div class="w-1/2 divide-y-2 p-4 border rounded-br-xl flex flex-col gap-4 bg-white">
+            <div class="w-1/2 divide-y-2 p-4 shadow-md rounded-br-xl flex flex-col gap-4 bg-white">
                 <div class="font-inter font-medium text-lg text-gray-900">
                     {{ __('Time VS Predicted Number of Failure') }}
                 </div>
@@ -236,6 +247,12 @@
                 myLineChart1.data.labels = times;
                 myLineChart1.data.datasets[0].data = data;
                 myLineChart1.update();
+            })
+        </script>
+
+        <script>
+            window.addEventListener('refresh-page', event => {
+            window.location.reload(false);
             })
         </script>
     @endpush

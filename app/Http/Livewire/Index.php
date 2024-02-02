@@ -2,7 +2,11 @@
 
 namespace App\Http\Livewire;
 
+use Carbon\Carbon;
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redirect;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class Index extends Component
@@ -18,9 +22,14 @@ class Index extends Component
     public $cumulativeFailureRate, $cumulativeMtbfs = [];
     public $predictedNumberFailures = [];
     public $time = [];
+    public $allData = [];
+    public $refresh = false;
 
     protected $listeners = [
         'calculateRow' => 'calculateRow',
+        'generatePdf',
+        'refreshComponent' => '$refresh',
+        'refreshPage',
     ];
 
     public function updateDataMtbf()
@@ -80,6 +89,8 @@ class Index extends Component
     }
 
     protected $messages = [ // Define your validation messages here.
+        // // 'failureTimes.*.cumulative_failure_time.required' => 'Enter the Cumulative Failure Time.',
+        // 'failureTimes.*.cumulative_failure_time.min' => 'Enter the Cumulative Failure Time.',
         'failureTimes.*.cumulative_failure_time.numeric' => 'The cumulative failure time field is number.', // Define your validation messages here.
         'endObservationTime.numeric' => 'The end observation time field is number.',
 
@@ -114,7 +125,7 @@ class Index extends Component
         $this->validate();
 
         if (empty($this->failureTimes[$index]['cumulative_failure_time'])) {
-            $this->alert('error', 'Please enter the cumulative failure time field.');
+            $this->alert('error', 'Please enter The Cumulative Failure Time field.');
             return;
         }
         //ni check new input lebih sikit dari atas
@@ -130,7 +141,7 @@ class Index extends Component
         }
 
         if ($index > 0 && $this->failureTimes[$index - 1]['cumulative_failure_time'] == 0) {
-            $this->alert('error', 'Please enter the cumulative failure time field before.');
+            $this->alert('error', 'Please enter The Cumulative Failure Time field');
         }
 
         $this->calculateRow();
@@ -157,12 +168,12 @@ class Index extends Component
             if($this->numberOfFailure > 0) {
                 $this->calculateRow();
             }else{
-                $this->alert('error', 'Please enter the cumulative failure time field before.');
+                $this->alert('error', 'Please enter The Cumulative Failure Time field.');
                 return;
             }
         }
         else{
-            $this->alert('error', 'Please enter the end observation time field.');
+            $this->alert('error', 'Please enter The End Observation Time field.');
             return;
         }
     }
@@ -255,6 +266,77 @@ class Index extends Component
             $valueCumulativeMtbfs = 1 / ($this->lambda * pow(($time * $index), $this->slope - 1));
             $this->cumulativeMtbfs[$index] = number_format($valueCumulativeMtbfs, 4, '.', '');
         }
+    }
+
+    public function isGeneratePdf()
+    {
+        if ($this->numberOfFailure == 0) {
+            return $this->alert('error', 'Please enter The Cumulative Failure Time field.');
+        }elseif($this->endObservationTime == 0) {
+            return $this->alert('error', 'Please enter The End of Observation Time field.');
+        }else{
+            $this->alert('warning', 'Export to PDF?', [
+                'position' => 'center',
+                'toast' => false,
+                'timer' => false,
+                'timerProgressBar' => false,
+                'showCancelButton' => true,
+                'onDismissed' => '',
+                'cancelButtonText' => 'Cancel',
+                'showConfirmButton' => true,
+                'onConfirmed' => 'generatePdf',
+                'confirmButtonText' => 'Generate PDF',
+                'data'=> [
+                    'data' => $this->allData,
+                ],
+            ]);
+        }
+    }
+
+    public function generatePdf($data)
+    {
+        $date = Carbon::now();
+        $data = [
+            'title' => 'NHPP Single System',
+            'date' => $date->format('j F Y, g:i:s a'),
+            'failureTimes' => $this->failureTimes,
+            'numberOfFailure' => $this->numberOfFailure,
+            'endObservationTime' => $this->endObservationTime,
+            'total' => $this->total,
+            'slope' => $this->slope,
+            'lambda' => $this->lambda,
+            'eta' => $this->eta,
+            'instantenousMtbfs' => $this->instantenousMtbfs,
+            'cumulativeMtbfs' => $this->cumulativeMtbfs,
+            'predictedNumberFailures' => $this->predictedNumberFailures,
+            'time' => $this->time,
+        ];
+        $this->allData = $data;
+
+        Session::flash('pdf_data', $data);
+        redirect()->route('generate-pdf');
+    }
+
+    public function isRefreshPage()
+    {
+        $this->alert('warning', 'Refresh Page?', [
+            'position' => 'center',
+            'toast' => false,
+            'timer' => false,
+            'text' => 'You will lose all the data.',
+            'timerProgressBar' => false,
+            'showCancelButton' => true,
+            'onDismissed' => '',
+            'cancelButtonText' => 'Cancel',
+            'showConfirmButton' => true,
+            'onConfirmed' => 'refreshPage',
+            'confirmButtonText' => 'Confirm',
+        ]);
+    }
+
+    public function refreshPage()
+    {
+        $this->dispatchBrowserEvent('refresh-page');
     }
 
     public function render()
