@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="w-full flex gap-4 p-4">
-                <div class="w-full overflow-auto">
+                <div class="w-full rounded-lg shadow-md overflow-auto">
                     <table class="w-full ">
                         <thead class="sticky top-0 bg-white rounded-t-xl">
                             <tr class="bg-gray-200">
@@ -115,28 +115,28 @@
                             <div x-data="{ refreshPage: 'Refresh!' }">
                                 <button x-tooltip="refreshPage"
                                     @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
-                                    wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                                    wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
                                     <x-icons.refresh />
                                 </button>
                             </div>
                             <div x-data="{ generatePdf: 'Export to PDF' }">
                                 <button x-tooltip="generatePdf"
                                     @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
-                                    wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                                    wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
                                     <x-icons.document />
                                 </button>
                             </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-2 h-auto">
-                        <div class="flex flex-col items-center py-4 rounded-lg bg-[#c8eceea5] text-[#22B8BE]">
+                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#c8eceea5] text-[#22B8BE]">
                             <div class="text-lg">
                                 {{ $numberOfFailure }}
                             </div>
                             {{ __('No. of failure (n)') }}
                         </div>
 
-                        <div class="flex flex-col items-center py-4 rounded-lg bg-[#fdf4b2] text-[#d1b200]">
+                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#fdf4b2] text-[#d1b200]">
                             <input
                                 wire:keydown.enter="inputEndObservationTime()"
                                 wire:model="endObservationTime"
@@ -151,7 +151,7 @@
                             {{ __('End of obervation time (T*)') }}
                         </div>
 
-                        <div class="flex flex-col items-center py-4 rounded-lg bg-[#e4e4e4] text-[#8F8F8F]">
+                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#e4e4e4] text-[#8F8F8F]">
                             <div class="text-lg">
                                 {{ number_format($total , 2) }}
                             </div>

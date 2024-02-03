@@ -24,6 +24,21 @@ class PDFController extends Controller
 
     // public function previewPDF()
     // {
-    //     return view('pdf.pdfView');
+    //     $data = [
+    //         'title' => 'NHPP Single System',
+    //         'date' => date('j F Y, g:i:s a'),
+    //         'failureTimes' => '$this->failureTimes',
+    //         'numberOfFailure' => '$this->numberOfFailure',
+    //         'endObservationTime' => '$this->endObservationTime',
+    //         'total' => '$this->total',
+    //         'slope' => '$this->slope',
+    //         'lambda' => '$this->lambda',
+    //         'eta' => '$this->eta',
+    //         'instantenousMtbfs' => '$this->instantenousMtbfs',
+    //         'cumulativeMtbfs' => '$this->cumulativeMtbfs',
+    //         'predictedNumberFailures' => '$this->predictedNumberFailures',
+    //         'time' => '$this->time',
+    //     ];
+    //     return view('pdf.pdfView', compact('data'));
     // }
 }

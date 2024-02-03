@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Carbon\Carbon;
 use Livewire\Component;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -291,6 +292,7 @@ class Index extends Component
                 ],
             ]);
         }
+        Log::info('Generate PDF');
     }
 
     public function generatePdf($data)
