@@ -43,18 +43,12 @@ class Index extends Component
         foreach($this->instantenousMtbfs as $index => $instantenousMtbf) {
             $labels[] = $this->time[$index];
             $dataInstantenousMtbfs[] = $instantenousMtbf;
-            // dd($data);
         }
 
         foreach($this->cumulativeMtbfs as $index => $cumulativeMtbf) {
             $dataCumulativeMtbfs[] = $cumulativeMtbf;
-            // dd($data);
         }
 
-        // foreach ($this->failureTimes as $index => $failureTime) {
-        //     $labels[] = $index + 1; //mtbf y axis
-        //     $data[] = $failureTime['cumulative_failure_time']; //time x axis
-        // }
         $this->labels = json_encode($labels);
         $this->data = json_encode($dataInstantenousMtbfs);
         $this->data1 = json_encode($dataCumulativeMtbfs);
@@ -85,17 +79,12 @@ class Index extends Component
         'failureTimes' => 'required|array',
         'failureTimes.*.cumulative_failure_time' => 'numeric',// Define your validation rules here.
         'endObservationTime' => 'numeric',
-        // Add more rules for other fields if needed.
         ];
     }
 
-    protected $messages = [ // Define your validation messages here.
-        // // 'failureTimes.*.cumulative_failure_time.required' => 'Enter the Cumulative Failure Time.',
-        // 'failureTimes.*.cumulative_failure_time.min' => 'Enter the Cumulative Failure Time.',
-        'failureTimes.*.cumulative_failure_time.numeric' => 'The cumulative failure time field is number.', // Define your validation messages here.
+    protected $messages = [
+        'failureTimes.*.cumulative_failure_time.numeric' => 'The cumulative failure time field is number.',
         'endObservationTime.numeric' => 'The end observation time field is number.',
-
-        // Add more messages for other fields if needed.
     ];
 
     public function mount()
@@ -129,16 +118,15 @@ class Index extends Component
             $this->alert('error', 'Please enter The Cumulative Failure Time field.');
             return;
         }
-        //ni check new input lebih sikit dari atas
+
         if ($index > 0 && $this->failureTimes[$index]['cumulative_failure_time'] <= $this->failureTimes[$index - 1]['cumulative_failure_time']) {
             $this->alert('error', 'Please enter the value greater than the previous value.');
             return;
-        } //Todo:: do validation
+        }
 
-        //input sedia ada lebih besar daripada bawah
         if (isset($this->failureTimes[$index + 1]) && $this->failureTimes[$index + 1]['cumulative_failure_time'] > 0 && $this->failureTimes[$index] >= $this->failureTimes[$index + 1] ) {
             $this->alert('error', 'Please enter the value greater than the previous value and lower than next value.');
-            return; // todo: validation
+            return;
         }
 
         if ($index > 0 && $this->failureTimes[$index - 1]['cumulative_failure_time'] == 0) {
@@ -189,6 +177,7 @@ class Index extends Component
                     $this->failureTimes[$index]['time_between_failures'] = $this->failureTimes[$index]['cumulative_failure_time'] - 0;
                     $this->failureTimes[$index]['cum_mtbf'] = $this->failureTimes[$index]['cumulative_failure_time'] / ($index + 1);
                     $this->failureTimes[$index]['natural_log_cum_failure_time'] = log($this->failureTimes[$index]['cumulative_failure_time']);
+
                     if($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
                         $this->failureTimes[$index]['natural_log_tti'] = log($this->endObservationTime / $this->failureTimes[$index]['cumulative_failure_time']);
                     }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
@@ -198,6 +187,7 @@ class Index extends Component
                     }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
                         $this->failureTimes[$index]['natural_log_tti'] = 0;
                     }
+
                     $this->numberOfFailure = $index + 1;
                     $this->total += $this->failureTimes[$index]['natural_log_cum_failure_time'];
                 } else {
@@ -207,7 +197,7 @@ class Index extends Component
                         $this->failureTimes[$index]['time_between_failures'] = $this->failureTimes[$index]['cumulative_failure_time'] - $this->failureTimes[$index - 1]['cumulative_failure_time'];
                         $this->failureTimes[$index]['cum_mtbf'] = $this->failureTimes[$index]['cumulative_failure_time'] / ($index + 1);
                         $this->failureTimes[$index]['natural_log_cum_failure_time'] = log($this->failureTimes[$index]['cumulative_failure_time']);
-                        // $this->endObservationTime != 0 ? $this->failureTimes[$index]['natural_log_tti'] = log($this->endObservationTime / $this->failureTimes[$index]['cumulative_failure_time']) : $this->failureTimes[$index]['natural_log_tti'] = 0;
+
                         if($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
                             $this->failureTimes[$index]['natural_log_tti'] = log($this->endObservationTime / $this->failureTimes[$index]['cumulative_failure_time']);
                         }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
@@ -217,6 +207,7 @@ class Index extends Component
                         }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
                             $this->failureTimes[$index]['natural_log_tti'] = 0;
                         }
+                        
                         $this->numberOfFailure = $index + 1;
                         $this->total += $this->failureTimes[$index]['natural_log_cum_failure_time'];
                     }
