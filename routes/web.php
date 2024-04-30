@@ -19,9 +19,15 @@ use App\Http\Controllers\ProfileController;
 //     return view('welcome');
 // });
 
-Route::get('/', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('/result', function () {
+        return view('result');
+    })->name('result');
+});
 
 Route::get('/generate-pdf', [PDFController::class, 'generatePDF'])->name('generate-pdf');
 

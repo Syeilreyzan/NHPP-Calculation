@@ -60,16 +60,14 @@
                                 <tr class="text-center border-b">
                                     <td>{{ $key + 1 . '.' }}</td>
                                     <td class="p-1">
-                                        <div x-data="{ inputText: '' }" class="flex flex-col gap-2">
+                                        <div class="flex flex-col gap-2">
                                             <input
                                                 wire:keydown.enter="addRow({{ $key }})"
                                                 wire:model="failureTimes.{{ $key }}.cumulative_failure_time"
                                                 type="text"
-                                                x-ref="inputField{{ $key }}"
-                                                x-model="inputText"
                                                 placeholder="Enter the number"
                                                 class="rounded-lg border-gray-400 text-center"
-                                                value="{{ $failureTime['cumulative_failure_time'] }}"
+                                                {{-- value="{{ $failureTime['cumulative_failure_time'] }}" --}}
                                             >
                                         </div>
                                     </td>
@@ -105,11 +103,10 @@
                     </table>
                 </div>
 
-                <div class="w-5/12 flex flex-col gap-4">
+                <div class="w-5/12 flex flex-col justify-center gap-4">
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
                             <h1 class="text-2xl">Result</h1>
-                            <h6>Estimated Parameters</h6>
                         </div>
                         <div class="flex gap-2">
                             <div x-data="{ refreshPage: 'Refresh!' }">
@@ -121,7 +118,7 @@
                             </div>
                             <div x-data="{ generatePdf: 'Export to PDF' }">
                                 <button x-tooltip="generatePdf"
-                                    @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
+                                    @if ($times == null) disabled @endif
                                     wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
                                     <x-icons.document />
                                 </button>
@@ -178,11 +175,21 @@
                 <div class="pt-4">
                     <canvas wire:ignore id="timeVsPredictedNumberOfFailureChart"></canvas>
                 </div>
+            </div>
         </div>
+
     </div>
+
     @push('js')
 
         <script src="{{ asset('vendor/chart.js/Chart.min.js') }}"></script>
+
+        <script>
+            window.addEventListener("DOMContentLoaded", function () {
+                Livewire.emit("updateChartMtbf1");
+                Livewire.emit("updateDataPredictedNumberOfFailure1");
+            });
+        </script>
 
         <script type="text/javascript">
                 var ctx = document.getElementById("timeVsMtbfChart");

@@ -128,9 +128,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($time as $index => $masa)
+                    @foreach ($times as $index => $time)
                         <tr>
-                            <th>{{ $masa }}</td>
+                            <td>{{ $time }}</td>
                             <td>{{ number_format($instantenousMtbfs[$index], 4) }}</td>
                             <td>{{ number_format($cumulativeMtbfs[$index], 4) }}</td>
                             <td>{{ number_format($predictedNumberFailures[$index], 4) }}</td>

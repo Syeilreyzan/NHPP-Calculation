@@ -9,20 +9,20 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use App\Traits\HasCalculationTrait;
 
 class Index extends Component
 {
-    use LivewireAlert;
-    public $failureTimes = [], $endObservationTime = 0, $numberOfFailure = 0, $total, $slope, $lambda, $eta;
-    public $cumulativeFailureTime;
+    use LivewireAlert, HasCalculationTrait;
+
     public $labels = [];
     public $data = [];
     public $data1 = [];
-    public $times = [];
-    public $instantenousFailureRate, $instantenousMtbfs = [];
-    public $cumulativeFailureRate, $cumulativeMtbfs = [];
-    public $predictedNumberFailures = [];
-    public $time = [];
+    // public $times = [];
+    // public $instantenousMtbfs = [];
+    // public $cumulativeMtbfs = [];
+    // public $predictedNumberFailures = [];
+    // public $time = [];
     public $allData = [];
     public $refresh = false;
 
@@ -31,7 +31,180 @@ class Index extends Component
         'generatePdf',
         'refreshComponent' => '$refresh',
         'refreshPage',
+        'updateChartMtbf1' => 'updateDataMtbf',
+        'updateDataPredictedNumberOfFailure1' => 'updateDataPredictedNumberOfFailure'
     ];
+
+    public function mount()
+    {
+        $this->initData();
+    }
+
+    protected function initData()
+    {
+        if (session()->has('nhpp_data')) {
+            $data = session()->get('nhpp_data');
+
+            if (isset($data['failureTimes'])) {
+                $this->failureTimes = $data['failureTimes'];
+            }
+
+            if (isset($data['results'])) {
+                $results = $data['results'];
+
+                $this->endObservationTime = $results['endObservationTime'] ?? 0;
+                $this->numberOfFailure = $results['numberOfFailure'] ?? 0;
+                $this->total = $results['total'] ?? 0;
+                $this->slope = $results['slope'] ?? 0;
+                $this->lambda = $results['lambda'] ?? 0;
+                $this->eta = $results['eta'] ?? 0;
+
+                $this->inputFailureRate = $results['inputFailureRate'] ?? 0;
+                $this->valueFailureRate = $results['valueFailureRate'] ?? 0;
+
+                $this->instantenousMtbf = $results['instantenousMtbf'] ?? 0;
+
+                $this->inputCumulativeFailure = $results['inputCumulativeFailure'] ?? 0;
+                $this->valueCumulativeFailure = $results['valueCumulativeFailure'] ?? 0;
+
+                $this->inputCumFailureRate = $results['inputCumFailureRate'] ?? 0;
+                $this->valueCumFailureRate = $results['valueCumFailureRate'] ?? 0;
+
+                $this->cumMtbf = $results['cumMtbf'] ?? 0;
+
+                $this->inputExpectedNumberFailure1 = $results['inputExpectedNumberFailure1'] ?? 0;
+                $this->inputExpectedNumberFailure2 = $results['inputExpectedNumberFailure2'] ?? 0;
+                $this->valueExpectedNumberFailure = $results['valueExpectedNumberFailure'] ?? 0;
+
+                $this->inputExpectedReliabilityBetween1 = $results['inputExpectedReliabilityBetween1'] ?? 0;
+                $this->inputExpectedReliabilityBetween2 = $results['inputExpectedReliabilityBetween2'] ?? 0;
+                $this->valueExpectedReliabilityBetween = $results['valueExpectedReliabilityBetween'] ?? 0;
+
+                $this->inputMtbfBetween1 = $results['inputMtbfBetween1'] ?? 0;
+                $this->inputMtbfBetween2 = $results['inputMtbfBetween2'] ?? 0;
+                $this->valueMtbfBetween = $results['valueMtbfBetween'] ?? 0;
+
+                $this->currentAge = $results['currentAge'] ?? 0;
+                $this->additionalMissionTime = $results['additionalMissionTime'] ?? 0;
+                $this->valueSurviveToAge = $results['valueSurviveToAge'] ?? 0;
+                $this->valueFailToAge = $results['valueFailToAge'] ?? 0;
+
+                $this->inputNextCumulativeFailure = $results['inputNextCumulativeFailure'] ?? 0;
+                $this->valueNextCumulativeFailure = $results['valueNextCumulativeFailure'] ?? 0;
+
+                $this->costOverhaul = $results['costOverhaul'] ?? 0;
+                $this->costUnplainedFailure = $results['costUnplainedFailure'] ?? 0;
+                $this->optimumTimeToOverhaul = $results['optimumTimeToOverhaul'] ?? 0;
+                $this->resultOptimumTimeToOverhaul = $results['resultOptimumTimeToOverhaul'] ?? 0;
+
+                $this->inputTimeMajorChange = $results['inputTimeMajorChange'] ?? 0;
+                // $this->countTimeMajorChange = $results['countTimeMajorChange'] ?? 0;
+                // $this->resulLnCumFailureTime = $results['resulLnCumFailureTime'] ?? 0;
+                // $this->value1 = $results['value1'] ?? 0;
+                // $this->value2 = $results['value2'] ?? 0;
+                $this->betaBeforeChange = $results['betaBeforeChange'] ?? 0;
+                $this->betaAfterChange = $results['betaAfterChange'] ?? 0;
+                $this->lambdaBeforeChange = $results['lambdaBeforeChange'] ?? 0;
+                $this->lambdaAfterChange = $results['lambdaAfterChange'] ?? 0;
+
+                $this->newFailureRate = $results['newFailureRate'] ?? 0;
+                $this->newMtbf = $results['newMtbf'] ?? 0;
+
+                $this->time = $results['time'] ?? 0;
+                $this->increment = $results['increment'] ?? 0;
+                $this->tableRows = $results['tableRows'] ?? 0;
+
+                $this->instantenousMtbfs = $results['instantenousMtbfs'] ?? [];
+                $this->cumulativeMtbfs = $results['cumulativeMtbfs'] ?? [];
+                $this->predictedNumberFailures = $results['predictedNumberFailures'] ?? [];
+                $this->times = $results['times'] ?? [];
+            }
+
+            $this->calculateRow();
+        } else {
+            $this->failureTimes[] = [
+                'id' => 0,
+                'cumulative_failure_time' => null,
+                'time_between_failures' => 0,
+                'cum_mtbf' => 0,
+                'natural_log_cum_failure_time' => 0,
+                'natural_log_tti' => 0,
+            ];
+        }
+    }
+
+    public function setSession()
+    {
+        $data = [
+            'failureTimes' => $this->failureTimes,
+            'results' => [
+                'endObservationTime' => $this->endObservationTime,
+                'numberOfFailure' => $this->numberOfFailure,
+                'total' => $this->total,
+                'slope' => $this->slope,
+                'lambda' => $this->lambda,
+                'eta' => $this->eta,
+                'inputFailureRate' => $this->inputFailureRate,
+                'valueFailureRate' => $this->valueFailureRate,
+                'instantenousMtbf' => $this->instantenousMtbf,
+                'inputCumulativeFailure' => $this->inputCumulativeFailure,
+                'valueCumulativeFailure' => $this->valueCumulativeFailure,
+                'inputCumFailureRate' => $this->inputCumFailureRate,
+                'valueCumFailureRate' => $this->valueCumFailureRate,
+                'cumMtbf' => $this->cumMtbf,
+                'inputExpectedNumberFailure1' => $this->inputExpectedNumberFailure1,
+                'inputExpectedNumberFailure2' => $this->inputExpectedNumberFailure2,
+                'valueExpectedNumberFailure' => $this->valueExpectedNumberFailure,
+
+                'inputExpectedReliabilityBetween1' => $this->inputExpectedReliabilityBetween1,
+                'inputExpectedReliabilityBetween2' => $this->inputExpectedReliabilityBetween2,
+                'valueExpectedReliabilityBetween' => $this->valueExpectedReliabilityBetween,
+
+                'inputMtbfBetween1' => $this->inputMtbfBetween1,
+                'inputMtbfBetween2' => $this->inputMtbfBetween2,
+                'valueMtbfBetween' => $this->valueMtbfBetween,
+
+                'currentAge' => $this->currentAge,
+                'additionalMissionTime' => $this->additionalMissionTime,
+                'valueSurviveToAge' => $this->valueSurviveToAge,
+                'valueFailToAge' => $this->valueFailToAge,
+
+                'inputNextCumulativeFailure' => $this->inputNextCumulativeFailure,
+                'valueNextCumulativeFailure' => $this->valueNextCumulativeFailure,
+
+                'costOverhaul' => $this->costOverhaul,
+                'costUnplainedFailure' => $this->costUnplainedFailure,
+                'optimumTimeToOverhaul' => $this->optimumTimeToOverhaul,
+                'resultOptimumTimeToOverhaul' => $this->resultOptimumTimeToOverhaul,
+
+                'inputTimeMajorChange' => $this->inputTimeMajorChange,
+                // 'countTimeMajorChange' => $this->countTimeMajorChange,
+                // 'resulLnCumFailureTime' => $this->resulLnCumFailureTime,
+                // 'value1' => $this->value1,
+                // 'value2' => $this->value2,
+                'betaBeforeChange' => $this->betaBeforeChange,
+                'betaAfterChange' => $this->betaAfterChange,
+                'lambdaBeforeChange' => $this->lambdaBeforeChange,
+                'lambdaAfterChange' => $this->lambdaAfterChange,
+
+                'newFailureRate' => $this->newFailureRate,
+                'newMtbf' => $this->newMtbf,
+
+                'time' => $this->time,
+                'increment' => $this->increment,
+                'tableRows' => $this->tableRows,
+
+                'instantenousMtbfs' => $this->instantenousMtbfs,
+                'cumulativeMtbfs' => $this->cumulativeMtbfs,
+                'predictedNumberFailures' => $this->predictedNumberFailures,
+                'times' => $this->times,
+
+            ]
+        ];
+
+        session()->put('nhpp_data', $data);
+    }
+
 
     public function updateDataMtbf()
     {
@@ -41,7 +214,7 @@ class Index extends Component
         $time[] = $this->time;
 
         foreach($this->instantenousMtbfs as $index => $instantenousMtbf) {
-            $labels[] = $this->time[$index];
+            $labels[] = $this->times[$index];
             $dataInstantenousMtbfs[] = $instantenousMtbf;
         }
 
@@ -63,202 +236,41 @@ class Index extends Component
         $time[] = $this->time;
 
         foreach($this->predictedNumberFailures as $index => $predictedNumberFailure) {
-            $times[] = $this->time[$index];
+            $times[] = $this->times[$index];
             $dataPredictedNumberOfFailure[] = $predictedNumberFailure;
         }
 
-        $this->times = json_encode($times);
+        $this->times = $times;
         $this->data = json_encode($dataPredictedNumberOfFailure);
 
-        $this->emit('updateChartPredicted', ['times' => $this->times, 'data' => $this->data, 'data1' => $this->data1 ]);
+        $this->emit('updateChartPredicted', ['times' => json_encode($times), 'data' => $this->data, 'data1' => $this->data1 ]);
     }
 
-    public function rules()
-    {
-        return [
-        'failureTimes' => 'required|array',
-        'failureTimes.*.cumulative_failure_time' => 'numeric',// Define your validation rules here.
-        'endObservationTime' => 'numeric',
-        ];
-    }
+    ## For table
+    // public function updatePredictedNumberOfFailure()
+    // {
+    //     for ($index = 1; $index <= $this->tableRows; $index++) {
+    //         $time = $this->time;
+    //         $this->time[$index] = $index * $time;
 
-    protected $messages = [
-        'failureTimes.*.cumulative_failure_time.numeric' => 'The cumulative failure time field is number.',
-        'endObservationTime.numeric' => 'The end observation time field is number.',
-    ];
+    //         $valuePredictedNumberFailure = $this->lambda * pow($time * $index, $this->slope);
+    //         $this->predictedNumberFailures[$index] = number_format($valuePredictedNumberFailure, 4, '.', '');
+    //     }
+    // }
 
-    public function mount()
-    {
-        $this->failureTimes[] = [
-            'id' => 0,
-            'cumulative_failure_time' => 0,
-            'time_between_failures' => 0,
-            'cum_mtbf' => 0,
-            'natural_log_cum_failure_time' => 0,
-            'natural_log_tti' => 0,
-        ];
-    }
+    // public function updateInstantenousMtbfs()
+    // {
+    //     for ($index = 1; $index <= $this->tableRows; $index++) {
+    //         $time = $this->time;
+    //         $this->time[$index] = $index * $time;
 
-    public function isAnyCumulativeFailureTimeNull()
-    {
-        foreach ($this->failureTimes as $failureTime) {
-            if (empty($failureTime['cumulative_failure_time'])) {
-                return true; // If any cumulative_failure_time is null, return true
-            }
-        }
+    //         $valueInstantenousMtbfs = 1 / ($this->lambda * $this->slope * pow(($time * $index), $this->slope - 1));
+    //         $this->instantenousMtbfs[$index] = number_format($valueInstantenousMtbfs, 4, '.', '');
 
-        return false; // If all cumulative_failure_time values are not null, return false
-    }
-
-    public function addRow($index)
-    {
-        $this->validate();
-
-        if (empty($this->failureTimes[$index]['cumulative_failure_time'])) {
-            $this->alert('error', 'Please enter The Cumulative Failure Time field.');
-            return;
-        }
-
-        if ($index > 0 && $this->failureTimes[$index]['cumulative_failure_time'] <= $this->failureTimes[$index - 1]['cumulative_failure_time']) {
-            $this->alert('error', 'Please enter the value greater than the previous value.');
-            return;
-        }
-
-        if (isset($this->failureTimes[$index + 1]) && $this->failureTimes[$index + 1]['cumulative_failure_time'] > 0 && $this->failureTimes[$index] >= $this->failureTimes[$index + 1] ) {
-            $this->alert('error', 'Please enter the value greater than the previous value and lower than next value.');
-            return;
-        }
-
-        if ($index > 0 && $this->failureTimes[$index - 1]['cumulative_failure_time'] == 0) {
-            $this->alert('error', 'Please enter The Cumulative Failure Time field');
-        }
-
-        $this->calculateRow();
-
-        if (isset($this->failureTimes[$index]['cumulative_failure_time']) &&
-            $this->failureTimes[$index]['cumulative_failure_time'] > 0 &&
-            $index == count($this->failureTimes) - 1) {
-            $this->failureTimes[] = [
-                'id' => 0,
-                'cumulative_failure_time' => 0,
-                'time_between_failures' => 0,
-                'cum_mtbf' => 0,
-                'natural_log_cum_failure_time' => 0,
-                'natural_log_tti' => 0,
-            ];
-        }
-    }
-
-    public function inputEndObservationTime()
-    {
-        $this->validate();
-
-        if ($this->endObservationTime > 0) {
-            if($this->numberOfFailure > 0) {
-                $this->calculateRow();
-            }else{
-                $this->alert('error', 'Please enter The Cumulative Failure Time field.');
-                return;
-            }
-        }
-        else{
-            $this->alert('error', 'Please enter The End Observation Time field.');
-            return;
-        }
-    }
-
-    public function calculateRow()
-    {
-        $this->total = 0;
-
-        if ($this->failureTimes > 0) {
-            foreach ($this->failureTimes as $index => $failureTime) {
-                if ($index == 0) {
-                    $this->failureTimes[$index]['time_between_failures'] = $this->failureTimes[$index]['cumulative_failure_time'] - 0;
-                    $this->failureTimes[$index]['cum_mtbf'] = $this->failureTimes[$index]['cumulative_failure_time'] / ($index + 1);
-                    $this->failureTimes[$index]['natural_log_cum_failure_time'] = log($this->failureTimes[$index]['cumulative_failure_time']);
-
-                    if($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
-                        $this->failureTimes[$index]['natural_log_tti'] = log($this->endObservationTime / $this->failureTimes[$index]['cumulative_failure_time']);
-                    }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
-                        $this->failureTimes[$index]['natural_log_tti'] = 0;
-                    }elseif($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
-                        $this->failureTimes[$index]['natural_log_tti'] = 0;
-                    }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
-                        $this->failureTimes[$index]['natural_log_tti'] = 0;
-                    }
-
-                    $this->numberOfFailure = $index + 1;
-                    $this->total += $this->failureTimes[$index]['natural_log_cum_failure_time'];
-                } else {
-                    if ($this->failureTimes[$index]['cumulative_failure_time'] == 0) {
-                        $this->failureTimes[$index]['time_between_failures'] = 0;
-                    } else {
-                        $this->failureTimes[$index]['time_between_failures'] = $this->failureTimes[$index]['cumulative_failure_time'] - $this->failureTimes[$index - 1]['cumulative_failure_time'];
-                        $this->failureTimes[$index]['cum_mtbf'] = $this->failureTimes[$index]['cumulative_failure_time'] / ($index + 1);
-                        $this->failureTimes[$index]['natural_log_cum_failure_time'] = log($this->failureTimes[$index]['cumulative_failure_time']);
-
-                        if($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
-                            $this->failureTimes[$index]['natural_log_tti'] = log($this->endObservationTime / $this->failureTimes[$index]['cumulative_failure_time']);
-                        }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] > 0) {
-                            $this->failureTimes[$index]['natural_log_tti'] = 0;
-                        }elseif($this->endObservationTime > 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
-                            $this->failureTimes[$index]['natural_log_tti'] = 0;
-                        }elseif($this->endObservationTime == 0 && $this->failureTimes[$index]['cumulative_failure_time'] == 0) {
-                            $this->failureTimes[$index]['natural_log_tti'] = 0;
-                        }
-                        
-                        $this->numberOfFailure = $index + 1;
-                        $this->total += $this->failureTimes[$index]['natural_log_cum_failure_time'];
-                    }
-                }
-            }
-            $this->calculateSlopeLambdaEta();
-        }
-    }
-
-    public function calculateSlopeLambdaEta()
-    {
-        if($this->endObservationTime > 0 && $this->numberOfFailure > 0) {
-            $this->slope = $this->numberOfFailure / ($this->numberOfFailure * log($this->endObservationTime) - $this->total);
-            $this->lambda = $this->numberOfFailure / pow($this->endObservationTime, $this->slope);
-            $this->eta = pow((1/$this->lambda), (1/$this->slope));
-
-            $this->updateInstantenousMtbfs();
-            $this->updatePredictedNumberOfFailure();
-            $this->updateDataMtbf();
-            $this->updateDataPredictedNumberOfFailure();
-        }
-        else{
-            $this->endObservationTime = 0;
-            $this->slope = 0;
-        }
-    }
-
-    public function updatePredictedNumberOfFailure()
-    {
-        for ($index = 1; $index <= 16; $index++) {
-            $time = 1000;
-            $this->time[$index] = $index * $time;
-
-            $valuePredictedNumberFailure = $this->lambda * pow($time * $index, $this->slope);
-            $this->predictedNumberFailures[$index] = number_format($valuePredictedNumberFailure, 4, '.', '');
-        }
-    }
-
-    public function updateInstantenousMtbfs()
-    {
-        for ($index = 1; $index <= 16; $index++) {
-            $time = 1000;
-            $this->time[$index] = $index * $time;
-
-            $valueInstantenousMtbfs = 1 / ($this->lambda * $this->slope * pow(($time * $index), $this->slope - 1));
-            $this->instantenousMtbfs[$index] = number_format($valueInstantenousMtbfs, 4, '.', '');
-
-            $valueCumulativeMtbfs = 1 / ($this->lambda * pow(($time * $index), $this->slope - 1));
-            $this->cumulativeMtbfs[$index] = number_format($valueCumulativeMtbfs, 4, '.', '');
-        }
-    }
+    //         $valueCumulativeMtbfs = 1 / ($this->lambda * pow(($time * $index), $this->slope - 1));
+    //         $this->cumulativeMtbfs[$index] = number_format($valueCumulativeMtbfs, 4, '.', '');
+    //     }
+    // }
 
     public function isGeneratePdf()
     {
@@ -302,7 +314,7 @@ class Index extends Component
             'instantenousMtbfs' => $this->instantenousMtbfs,
             'cumulativeMtbfs' => $this->cumulativeMtbfs,
             'predictedNumberFailures' => $this->predictedNumberFailures,
-            'time' => $this->time,
+            'times' => $this->times,
         ];
         $this->allData = $data;
 
@@ -330,6 +342,7 @@ class Index extends Component
     public function refreshPage()
     {
         $this->dispatchBrowserEvent('refresh-page');
+        session()->forget('nhpp_data');
     }
 
     public function render()

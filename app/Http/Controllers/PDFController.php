@@ -17,7 +17,7 @@ class PDFController extends Controller
             $pdf = PDF::loadView('pdf.pdfView', $data);
             return $pdf->download($filename);
         } else {
-            return redirect()->route('dashboard');
+            return redirect()->route('result');
         }
         Session::forget('pdf_data');
     }
