@@ -33,6 +33,8 @@ trait HasCalculationTrait
     public $predictedNumberFailures = [];
     public $times = [];
 
+    public $isDisabled = false;
+
     public function rules()
     {
         return [

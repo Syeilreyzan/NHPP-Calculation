@@ -19,6 +19,10 @@ export default {
                 'gray-table-header' : '#c8c8c8',
                 'green-table-header' : '#a8d08d',
             },
+            screens: {
+                print: { raw: 'print' },
+                screen: { raw: 'screen' },
+            },
         },
     },
     safelist: [

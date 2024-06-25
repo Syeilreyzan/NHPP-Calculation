@@ -25,6 +25,8 @@ class Index extends Component
     // public $time = [];
     public $allData = [];
     public $refresh = false;
+    public $testing = 'Hello World';
+    public $isDisabled = false;
 
     protected $listeners = [
         'calculateRow' => 'calculateRow',
@@ -32,15 +34,17 @@ class Index extends Component
         'refreshComponent' => '$refresh',
         'refreshPage',
         'updateChartMtbf1' => 'updateDataMtbf',
-        'updateDataPredictedNumberOfFailure1' => 'updateDataPredictedNumberOfFailure'
+        'updateDataPredictedNumberOfFailure1' => 'updateDataPredictedNumberOfFailure',
+        'mount',
     ];
 
     public function mount()
     {
         $this->initData();
+        // $this->emit("refreshComponent");
     }
 
-    protected function initData()
+    public function initData()
     {
         if (session()->has('nhpp_data')) {
             $data = session()->get('nhpp_data');
@@ -118,11 +122,12 @@ class Index extends Component
                 $this->cumulativeMtbfs = $results['cumulativeMtbfs'] ?? [];
                 $this->predictedNumberFailures = $results['predictedNumberFailures'] ?? [];
                 $this->times = $results['times'] ?? [];
+                $this->isDisabled = $results['isDisabled'] ?? false;
             }
 
             $this->calculateRow();
         } else {
-            $this->failureTimes[] = [
+            $this->failureTimes[0] = [
                 'id' => 0,
                 'cumulative_failure_time' => null,
                 'time_between_failures' => 0,
@@ -131,6 +136,8 @@ class Index extends Component
                 'natural_log_tti' => 0,
             ];
         }
+        $this->updateDataMtbf();
+        $this->updateDataPredictedNumberOfFailure();
     }
 
     public function setSession()
@@ -198,7 +205,7 @@ class Index extends Component
                 'cumulativeMtbfs' => $this->cumulativeMtbfs,
                 'predictedNumberFailures' => $this->predictedNumberFailures,
                 'times' => $this->times,
-
+                'isDisabled' => $this->isDisabled,
             ]
         ];
 
@@ -315,6 +322,10 @@ class Index extends Component
             'cumulativeMtbfs' => $this->cumulativeMtbfs,
             'predictedNumberFailures' => $this->predictedNumberFailures,
             'times' => $this->times,
+            'labels' => $this->labels,
+            'data' => $this->data,
+            'data1' => $this->data1,
+            'isDisabled' => $this->isDisabled,
         ];
         $this->allData = $data;
 

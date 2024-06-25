@@ -43,7 +43,7 @@
                     x-bind:class="modalWidth"
                     class="inline-block w-full align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full"
                     id="modal-container"
-                    {{-- x-trap.noscroll.inert="show && showActiveComponent" --}}
+                    x-trap.noscroll.inert="show && showActiveComponent"
                     aria-modal="true"
             >
                 @forelse($components as $id => $component)

@@ -208,7 +208,7 @@ class Index2 extends Component
 
     public function mount()
     {
-
+        $this->emit("refreshComponent");
         $this->initData();
         $this->calculatePredictionNextFailure();
         $this->generateTable();

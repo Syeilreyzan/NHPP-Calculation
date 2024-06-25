@@ -80,7 +80,7 @@
                         <th class="py-4 rounded-tr-xl">ln (T*/ti)</th>
                     </tr>
                     @foreach ($failureTimes as $key => $failureTime)
-                        @if ($loop->last)
+                        @if ($loop->last && !isset($failureTime['cumulative_failure_time']))
                             @continue
                         @endif
                         <tr>
@@ -216,5 +216,75 @@
             </table>
         </div>
     </div> --}}
+
+    <script>
+        document.getElementById("demo").innerHTML = 5 + 6;
+    </script>
+    <script src="{{ asset('vendor/chart.js/Chart.min.js') }}"></script>
+
+    <script type="text/javascript">
+        var ctx = document.getElementById("timeVsMtbfChart");
+
+        var myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Instantenous MTBF",
+                        fill: false,
+                        borderColor: 'rgb(0, 142, 34)',
+                        tension: 0.1,
+                        data: [],
+                    },
+                    {
+                        label: "Cumulative MTBF",
+                        fill: false,
+                        borderColor: 'rgb(30, 58, 138)',
+                        tension: 0.1,
+                        data: [],
+                    },
+                ],
+            },
+        });
+
+        Livewire.on('updateChartMtbf', event => {
+            var labels = JSON.parse(event.labels);
+            var data = JSON.parse(event.data);
+            var data1 = JSON.parse(event.data1);
+            myLineChart.data.labels = labels;
+            myLineChart.data.datasets[0].data = data;
+            myLineChart.data.datasets[1].data = data1;
+            myLineChart.update();
+        })
+    </script>
+
+    <script type="text/javascript">
+        var ctx = document.getElementById("timeVsPredictedNumberOfFailureChart");
+
+        var myLineChart1 = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Instantenous MTBF",
+                        fill: false,
+                        borderColor: 'rgb(229, 11, 11)',
+                        tension: 0.1,
+                        data: [],
+                    },
+                ],
+            },
+        });
+
+        Livewire.on('updateChartPredicted', event => {
+            var times = JSON.parse(event.times);
+            var data = JSON.parse(event.data);
+            myLineChart1.data.labels = times;
+            myLineChart1.data.datasets[0].data = data;
+            myLineChart1.update();
+        })
+    </script>
 </body>
 </html>

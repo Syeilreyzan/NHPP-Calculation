@@ -27,7 +27,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/result', function () {
         return view('result');
     })->name('result');
+
+    Route::get('multiple-system', function () {
+        return view('multiple-system');
+    })->name('multiple-system');
 });
+
+
 
 Route::get('/generate-pdf', [PDFController::class, 'generatePDF'])->name('generate-pdf');
 
