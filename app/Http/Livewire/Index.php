@@ -50,7 +50,16 @@ class Index extends Component
             $data = session()->get('nhpp_data');
 
             if (isset($data['failureTimes'])) {
-                $this->failureTimes = $data['failureTimes'];
+                $this->failureTimes = $data['failureTimes'] ?? [
+                    [
+                        'id' => 0,
+                        'cumulative_failure_time' => null,
+                        'time_between_failures' => 0,
+                        'cum_mtbf' => 0,
+                        'natural_log_cum_failure_time' => 0,
+                        'natural_log_tti' => 0,
+                    ]
+                ];
             }
 
             if (isset($data['results'])) {
@@ -124,8 +133,16 @@ class Index extends Component
                 $this->times = $results['times'] ?? [];
                 $this->isDisabled = $results['isDisabled'] ?? false;
             }
-
             $this->calculateRow();
+
+            $this->failureTimes[] = [
+                'id' => 0,
+                'cumulative_failure_time' => null,
+                'time_between_failures' => 0,
+                'cum_mtbf' => 0,
+                'natural_log_cum_failure_time' => 0,
+                'natural_log_tti' => 0,
+            ];
         } else {
             $this->failureTimes[0] = [
                 'id' => 0,
@@ -212,6 +229,26 @@ class Index extends Component
         session()->put('nhpp_data', $data);
     }
 
+    public function refreshSystem($system)
+    {
+        if (!in_array($system, ['failureTimes'])) {
+            return;
+        }
+        $data = session()->get('nhpp_data', []);
+
+        unset($data[$system]);
+        $data[$system] = [];
+
+        unset($data['results'][$this->numberOfFailure]); // Remove from session results
+        $data['results'][$this->numberOfFailure] = 0;
+
+        session()->put('nhpp_data', $data);
+
+        $this->$system = [];
+        $this->numberOfFailure = 0;
+
+        $this->initData();
+    }
 
     public function updateDataMtbf()
     {

@@ -39,7 +39,6 @@ trait HasCalculationMultipleTrait
     public function rules()
     {
         return [
-        // 'failureTimes1' => 'required|array',
         'failureTimes1.*.cumulative_failure_time' => 'numeric',// Define your validation rules here.
         'failureTimes2.*.cumulative_failure_time' => 'numeric',// Define your validation rules here.
         'endObservationTime' => 'numeric',
@@ -224,8 +223,9 @@ trait HasCalculationMultipleTrait
             }
         }
         $this->validateOnly('failureTimes1.*.cumulative_failure_time');
-        // $this->validateOnly('endObservationTime');
+        $this->numberOfFailure1 = 0;
         $this->total1 = 0;
+        $this->totalFailure1 = 0;
 
         if ($this->failureTimes1 > 0) {
             foreach ($this->failureTimes1 as $index => $failureTime1) {
@@ -234,8 +234,6 @@ trait HasCalculationMultipleTrait
                     if ($this->endObservationTime > 0) {
                         $this->failureTimes1[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes1[$index]['cumulative_failure_time']);
                     }
-                    // $this->failureTimes1[$index]['natural_log_cum_failure_time'] = log($this->failureTimes1[$index]['cumulative_failure_time']);
-
                     $this->numberOfFailure1 = $index + 1;
                     $this->total1 += $this->failureTimes1[$index]['natural_log_cum_failure_time'];
                 } else {
@@ -246,8 +244,6 @@ trait HasCalculationMultipleTrait
                         if ($this->endObservationTime > 0) {
                             $this->failureTimes1[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes1[$index]['cumulative_failure_time']);
                         }
-                        // $this->failureTimes1[$index]['natural_log_cum_failure_time'] = log($this->failureTimes1[$index]['cumulative_failure_time']);
-
                         $this->numberOfFailure1 = $index + 1;
                         $this->total1 += $this->failureTimes1[$index]['natural_log_cum_failure_time'];
                         $this->totalFailure1 = $this->total1;
@@ -259,6 +255,9 @@ trait HasCalculationMultipleTrait
             $this->calculateTotalNaturalLogCumFailureTime();
             $this->calculateTotalNumberOfFailures();
             $this->calculateSlopeLambdaEta();
+            $this->updateInstantenousMtbfs();
+            $this->updateDataMtbf();
+            $this->updateDataPredictedNumberOfFailure();
             $this->setSession();
         }
     }
@@ -275,8 +274,9 @@ trait HasCalculationMultipleTrait
             }
         }
         $this->validateOnly('failureTimes2.*.cumulative_failure_time');
-        // $this->validateOnly('endObservationTime');
+        $this->numberOfFailure2 = 0;
         $this->total2 = 0;
+        $this->totalFailure2 = 0;
 
         if ($this->failureTimes2 > 0) {
             foreach ($this->failureTimes2 as $index => $failureTime2) {
@@ -285,8 +285,6 @@ trait HasCalculationMultipleTrait
                     if ($this->endObservationTime > 0) {
                         $this->failureTimes2[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes2[$index]['cumulative_failure_time']);
                     }
-                    // $this->failureTimes2[$index]['natural_log_cum_failure_time'] = log($this->failureTimes2[$index]['cumulative_failure_time']);
-
                     $this->numberOfFailure2 = $index + 1;
                     $this->total2 += $this->failureTimes2[$index]['natural_log_cum_failure_time'];
                 } else {
@@ -297,8 +295,6 @@ trait HasCalculationMultipleTrait
                         if ($this->endObservationTime > 0) {
                             $this->failureTimes2[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes2[$index]['cumulative_failure_time']);
                         }
-                        // $this->failureTimes2[$index]['natural_log_cum_failure_time'] = log($this->failureTimes2[$index]['cumulative_failure_time']);
-
                         $this->numberOfFailure2 = $index + 1;
                         $this->total2 += $this->failureTimes2[$index]['natural_log_cum_failure_time'];
 
@@ -310,6 +306,9 @@ trait HasCalculationMultipleTrait
             $this->calculateTotalNaturalLogCumFailureTime();
             $this->calculateTotalNumberOfFailures();
             $this->calculateSlopeLambdaEta();
+            $this->updateInstantenousMtbfs();
+            $this->updateDataMtbf();
+            $this->updateDataPredictedNumberOfFailure();
             $this->setSession();
         }
     }
@@ -326,8 +325,9 @@ trait HasCalculationMultipleTrait
             }
         }
         $this->validateOnly('failureTimes3.*.cumulative_failure_time');
-        // $this->validateOnly('endObservationTime');
+        $this->numberOfFailure3 = 0;
         $this->total3 = 0;
+        $this->totalFailure3 = 0;
 
         if ($this->failureTimes3 > 0) {
             foreach ($this->failureTimes3 as $index => $failureTime3) {
@@ -336,7 +336,6 @@ trait HasCalculationMultipleTrait
                     if ($this->endObservationTime > 0) {
                         $this->failureTimes3[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes3[$index]['cumulative_failure_time']);
                     }
-                    // $this->failureTimes3[$index]['natural_log_cum_failure_time'] = log($this->failureTimes3[$index]['cumulative_failure_time']);
 
                     $this->numberOfFailure3 = $index + 1;
                     $this->total3 += $this->failureTimes3[$index]['natural_log_cum_failure_time'];
@@ -348,7 +347,6 @@ trait HasCalculationMultipleTrait
                         if ($this->endObservationTime > 0) {
                             $this->failureTimes3[$index]['natural_log_cum_failure_time'] = log($this->endObservationTime / $this->failureTimes3[$index]['cumulative_failure_time']);
                         }
-                        // $this->failureTimes3[$index]['natural_log_cum_failure_time'] = log($this->failureTimes3[$index]['cumulative_failure_time']);
 
                         $this->numberOfFailure3 = $index + 1;
                         $this->total3 += $this->failureTimes3[$index]['natural_log_cum_failure_time'];
@@ -361,8 +359,51 @@ trait HasCalculationMultipleTrait
             $this->calculateTotalNaturalLogCumFailureTime();
             $this->calculateTotalNumberOfFailures();
             $this->calculateSlopeLambdaEta();
+            $this->updateInstantenousMtbfs();
+            $this->updateDataMtbf();
+            $this->updateDataPredictedNumberOfFailure();
             $this->setSession();
         }
+    }
+
+    public function updateDataMtbf()
+    {
+        $labels = [];
+        $dataInstantenousMtbfs = [];
+        $dataCumulativeMtbfs = [];
+        $time[] = $this->time;
+
+        foreach($this->instantenousMtbfs as $index => $instantenousMtbf) {
+            $labels[] = $this->times[$index];
+            $dataInstantenousMtbfs[] = $instantenousMtbf;
+        }
+
+        foreach($this->cumulativeMtbfs as $index => $cumulativeMtbf) {
+            $dataCumulativeMtbfs[] = $cumulativeMtbf;
+        }
+
+        $this->labels = json_encode($labels);
+        $this->data = json_encode($dataInstantenousMtbfs);
+        $this->data1 = json_encode($dataCumulativeMtbfs);
+
+        $this->emit('updateChartMtbf', ['labels' => $this->labels, 'data' => $this->data, 'data1' => $this->data1 ]);
+    }
+
+    public function updateDataPredictedNumberOfFailure()
+    {
+        $times = [];
+        $dataPredictedNumberOfFailure = [];
+        $time[] = $this->time;
+
+        foreach($this->predictedNumberFailures as $index => $predictedNumberFailure) {
+            $times[] = $this->times[$index];
+            $dataPredictedNumberOfFailure[] = $predictedNumberFailure;
+        }
+
+        $this->times = $times;
+        $this->data = json_encode($dataPredictedNumberOfFailure);
+
+        $this->emit('updateChartPredicted', ['times' => json_encode($times), 'data' => $this->data, 'data1' => $this->data1 ]);
     }
 
     public function calculateTotalNumberOfFailures()
@@ -373,10 +414,7 @@ trait HasCalculationMultipleTrait
     public function calculateTotalNaturalLogCumFailureTime()
     {
         if($this->total > 0) {
-            // $this->total = 0;
-            // $this->total1 = 0;
-            // $this->total2 = 0;
-            $this->total = $this->totalFailure1 + $this->totalFailure2 + $this->totalFailure3;
+            $this->total = $this->totalFailure3 + $this->totalFailure2 + $this->totalFailure1;
         } else {
             $this->total = 0;
             $this->total = $this->totalFailure1 + $this->totalFailure2 + $this->totalFailure3;
@@ -385,13 +423,14 @@ trait HasCalculationMultipleTrait
 
     public function calculateSlopeLambdaEta()
     {
+        if ($this->endObservationTime == null) {
+            return;
+        }
         if ($this->totalNumberOfFailureAllSystem > 0 && $this->total > 0 && $this->numberOfSystem > 0) {
-            # code...
             $this->validateOnly('endObservationTime');
             $this->slope = $this->totalNumberOfFailureAllSystem / $this->total;
             $this->lambda = $this->totalNumberOfFailureAllSystem / ($this->numberOfSystem * pow($this->endObservationTime, $this->slope));
             $this->eta = pow((1/$this->lambda), (1/$this->slope));
-            // $this->calculatePredictionNextFailureMultiple();
         }
         $this->setSession();
     }
@@ -399,8 +438,6 @@ trait HasCalculationMultipleTrait
     public function calculatePredictionNextFailureMultiple()
     {
         if ($this->numberOfSystem != 0 && $this->endObservationTime != 0){
-            # code...
-
             $this->nextNumberOfFailure = $this->totalNumberOfFailureAllSystem + 1;
             $this->resultNextNumberOfFailure = pow($this->nextNumberOfFailure / $this->lambda, 1 / $this->slope);
             $this->timeToNextFailure = $this->resultNextNumberOfFailure - $this->endObservationTime;
@@ -412,93 +449,6 @@ trait HasCalculationMultipleTrait
     {
         $slope = $totalNumberOfFailureAllSystem / $total;
     }
-
-    // For Updated input field
-    // public function updatedEndObservationTime()
-    // {
-    //     $this->inputEndObservationTime();
-    // }
-
-    // public function updatedNumberOfSystem()
-    // {
-    //     $this->inputNumberOfFailure();
-    //     $this->calculatePredictionNextFailureMultiple();
-    // }
-
-    // public function updatedInputFailureRate()
-    // {
-    //     $this->calculateFailureRate();
-    // }
-
-    // public function updatedInputCumulativeFailure()
-    // {
-    //     $this->calculateCumulativeFailure();
-    // }
-
-    // public function updatedInputCumFailureRate()
-    // {
-    //     $this->calculateCumFailureRate();
-    // }
-
-    // public function updatedInputExpectedNumberFailure1()
-    // {
-    //     $this->calculateExpectedNumberFailureBetween();
-    // }
-
-    // public function updatedInputExpectedNumberFailure2()
-    // {
-    //     $this->calculateExpectedNumberFailureBetween();
-    // }
-
-    // public function updatedInputExpectedReliabilityBetween1()
-    // {
-    //     $this->calculateExpectedReliabilityBetween();
-    // }
-
-    // public function updatedInputExpectedReliabilityBetween2()
-    // {
-    //     $this->calculateExpectedReliabilityBetween();
-    // }
-
-    // public function updatedInputMtbfBetween1()
-    // {
-    //     $this->calculateMtbfBetween();
-    // }
-
-    // public function updatedInputMtbfBetween2()
-    // {
-    //     $this->calculateMtbfBetween();
-    // }
-
-    // public function updatedCurrentAge()
-    // {
-    //     $this->probabilitySurviveToAge();
-    // }
-
-    // public function updatedAdditionalMissionTime()
-    // {
-    //     $this->probabilitySurviveToAge();
-    // }
-
-    // public function updatedInputNextCumulativeFailure()
-    // {
-    //     $this->calculateNextCumulativeFailure();
-    // }
-
-    // public function updatedCostUnplainedFailure()
-    // {
-    //     $this->calculateTimeToOverhaul();
-    // }
-
-    // public function updatedCostOverhaul()
-    // {
-    //     $this->calculateTimeToOverhaul();
-    // }
-
-    // public function updatedInputTimeMajorChange()
-    // {
-    //     $this->calculateTimeMajorChange();
-    // }
 
     public function calculateTimeMajorChange()
     {
@@ -521,14 +471,12 @@ trait HasCalculationMultipleTrait
         }
         $this->calculateColumnBeta();
         $this->calculateColumnLambda();
-        // $this->calculateNewFailureRate();
         $this->setSession();
     }
 
     public function calculateColumnBeta()
     {
         if ($this->countTimeMajorChange * log($this->inputTimeMajorChange) - $this->resulLnCumFailureTime != 0) {
-            // $this->betaBeforeChange = $this->countTimeMajorChange / ($this->countTimeMajorChange * log($this->inputTimeMajorChange) - $this->resulLnCumFailureTime);
             $this->betaBeforeChange = $this->countTimeMajorChange / ($this->countTimeMajorChange * log($this->inputTimeMajorChange) - $this->resulLnCumFailureTime);
             $denominator = $this->countTimeMajorChange * log($this->endObservationTime / $this->inputTimeMajorChange) + $this->value2;
             if ($denominator != 0) {
@@ -565,28 +513,27 @@ trait HasCalculationMultipleTrait
         }
     }
 
-    // For Calculation
     public function inputEndObservationTime()
     {
-        // $this->validate();
-
-        if (isset($this->endObservationTime) && $this->endObservationTime != 0) {
-            if($this->numberOfFailure1 > 0) {
+        if ($this->endObservationTime == null) {
+            return;
+        }
+        if($this->totalNumberOfFailureAllSystem > 0) {
+            if (isset($this->endObservationTime) && $this->endObservationTime != 0) {
                 $this->calculateRowSystem1();
                 $this->calculateRowSystem2();
                 $this->calculateRowSystem3();
                 $this->calculateSlopeLambdaEta();
-                // $this->setSession();
-                // dd('hello');
+                $this->calculateTotalNaturalLogCumFailureTime();
             }else{
                 $this->alert('error', 'Please enter The Cumulative Failure Time field.');
-                // $this->setSession();
                 return;
             }
         }
-        // else{
-        //     return;
-        // }
+        else{
+            $this->alert('error', 'Please enter The Cumulative Failure Time field.');
+            return;
+        }
     }
 
     public function inputNumberOfFailure()
@@ -607,8 +554,6 @@ trait HasCalculationMultipleTrait
             return;
         }else{
             $this->valueFailureRate = $this->lambda * $this->slope * pow($this->inputFailureRate, ($this->slope - 1));
-            // $this->valueFailureRate = 0.005188 * 1.300880 * pow($this->inputFailureRate, (1.300880 - 1));
-
             $this->instantenousMtbf = 1 / $this->valueFailureRate;
         }
         $this->setSession();
@@ -622,7 +567,6 @@ trait HasCalculationMultipleTrait
         }
         $this->validateOnly('inputCumulativeFailure');
         $this->valueCumulativeFailure = $this->lambda * pow($this->inputCumulativeFailure, $this->slope);
-        // $this->valueCumulativeFailure = 0.005188 * pow(610, 1.300880);
         $this->setSession();
     }
 
@@ -634,23 +578,15 @@ trait HasCalculationMultipleTrait
         }
         $this->validateOnly('inputCumFailureRate');
         $this->valueCumFailureRate = ($this->lambda * pow($this->inputCumFailureRate, $this->slope)) / $this->inputCumFailureRate;
-        // $this->valueCumFailureRate = (0.005188 * pow($this->inputCumFailureRate, 1.300880)) / $this->inputCumFailureRate;
         $this->cumMtbf = 1 / $this->valueCumFailureRate;
         $this->setSession();
     }
 
     public function calculateExpectedNumberFailureBetween()
     {
-        // if (isset($inputExpectedNumberFailure1) || isset($this->inputExpectedNumberFailure2)) {
-        //     # code...
             $this->validateOnly('inputExpectedNumberFailure1');
             $this->validateOnly('inputExpectedNumberFailure2');
             $this->valueExpectedNumberFailure = $this->lambda * (pow($this->inputExpectedNumberFailure2, $this->slope) - pow($this->inputExpectedNumberFailure1, $this->slope));
-            // $this->valueExpectedNumberFailure = 0.005188 * (pow(610, 1.300880) - pow(410, 1.300880));
-            $this->setSession();
-        // }else{
-        //     return;
-        // }
     }
 
     public function calculateExpectedReliabilityBetween()
@@ -658,8 +594,6 @@ trait HasCalculationMultipleTrait
         $this->validateOnly('inputExpectedReliabilityBetween1');
         $this->validateOnly('inputExpectedReliabilityBetween2');
         $this->valueExpectedReliabilityBetween = exp(-$this->lambda * (pow($this->inputExpectedReliabilityBetween2, $this->slope) - pow($this->inputExpectedReliabilityBetween1, $this->slope)));
-        // $this->valueExpectedReliabilityBetween = exp(-$this->lambda * (pow($this->inputExpectedReliabilityBetween1, $this->slope) - pow($this->inputExpectedReliabilityBetween2, $this->slope)));
-        // $this->valueExpectedReliabilityBetween = exp(-0.005188 * (pow(610, 1.300880) - pow(410, 1.300880)));
         $this->setSession();
     }
 
@@ -725,7 +659,6 @@ trait HasCalculationMultipleTrait
         } catch (Exception $e) {
             return $this->alert('error', 'No possible solution');
         }
-        // $this->resultOptimumTimeToOverhaul = $this->lambda * ($this->slope - 1) * $this->costUnplainedFailure;
         $this->setSession();
     }
 

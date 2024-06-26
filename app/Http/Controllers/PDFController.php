@@ -8,17 +8,33 @@ use Illuminate\Support\Facades\Session;
 
 class PDFController extends Controller
 {
-    public function generatePDF()
+    public function generatePdf()
     {
         if (session('pdf_data')) {
             $data = session('pdf_data');
             $date = date('dmy-His', strtotime($data['date']));
             $filename = 'time-table-' . $date . '.pdf';
             $pdf = PDF::loadView('pdf.pdfView', $data);
-            return $pdf->download($filename);
+            // return $pdf->download($filename);
+            return $pdf->stream();
         } else {
-            return redirect()->route('result');
+            return redirect()->route('dashboard');
         }
         Session::forget('pdf_data');
+    }
+
+    public function generatePdfMultiple()
+    {
+        if(session('pdf_data_multiple')){
+            $dataMultiple = session('pdf_data_multiple');
+            $date = date('dmy-His', strtotime($dataMultiple['date']));
+            $filename = 'time-table-' . $date . '.pdf';
+            $pdf = PDF::loadView('pdf.pdfViewMultiple', $dataMultiple);
+            // return $pdf->download($filename);
+            return $pdf->stream();
+        } else {
+            return redirect()->route('multiple-system');
+        }
+        Session::forget('pdf_data_multiple');
     }
 }

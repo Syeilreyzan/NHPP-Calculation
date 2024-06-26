@@ -47,10 +47,10 @@ class Index2 extends Component
             }
 
             if (isset($data['results'])) {
-                if (isset($results['numberOfFailure']) && $results['numberOfFailure'] <=0) {
-                    //throw error
-                    return;
-                }
+                // if (isset($results['numberOfFailure']) && $results['numberOfFailure'] <=0) {
+                //     //throw error
+                //     return;
+                // }
 
                 $results = $data['results'];
 

@@ -137,6 +137,8 @@ trait HasCalculationTrait
                 'natural_log_tti' => 0,
             ];
         }
+        $newIndex = count($this->failureTimes) - 1;
+        $this->emit('rowAdded', $newIndex);
     }
 
     public function calculateRow()
@@ -153,6 +155,7 @@ trait HasCalculationTrait
         $this->validateOnly('failureTimes.*.cumulative_failure_time');
         $this->validateOnly('endObservationTime');
         $this->total = 0;
+        $this->numberOfFailure = 0;
 
         if ($this->failureTimes > 0) {
             foreach ($this->failureTimes as $index => $failureTime) {
@@ -198,7 +201,6 @@ trait HasCalculationTrait
             }
 
             $this->calculateSlopeLambdaEta();
-            // $this->calculatePredictionNextFailure();
             $this->setSession();
         }
     }
@@ -210,8 +212,6 @@ trait HasCalculationTrait
 
     public function inputEndObservationTime()
     {
-        // $this->validate();
-
         if ($this->endObservationTime > 0) {
             if($this->numberOfFailure > 0) {
                 $this->calculateRow();
@@ -220,9 +220,6 @@ trait HasCalculationTrait
                 return;
             }
         }
-        // else{
-        //     return;
-        // }
     }
 
     public function calculateSlopeLambdaEta()
@@ -233,12 +230,6 @@ trait HasCalculationTrait
             $this->eta = pow((1/$this->lambda), (1/$this->slope));
 
             $this->calculatePredictionNextFailure();
-            // $this->nextNumberOfFailure = $this->numberOfFailure + 1;
-            // $this->resultNextNumberOfFailure = pow($this->nextNumberOfFailure / $this->lambda, 1 / $this->slope);
-            // $this->updateInstantenousMtbfs();
-            // $this->updatePredictedNumberOfFailure();
-            // $this->updateDataMtbf();
-            // $this->updateDataPredictedNumberOfFailure();
         }
         else{
             $this->endObservationTime = 0;
@@ -260,7 +251,6 @@ trait HasCalculationTrait
             return;
         }else{
             $this->valueFailureRate = $this->lambda * $this->slope * pow($this->inputFailureRate, ($this->slope - 1));
-            // $this->valueFailureRate = 0.005188 * 1.300880 * pow($this->inputFailureRate, (1.300880 - 1));
 
             $this->instantenousMtbf = 1 / $this->valueFailureRate;
         }
@@ -275,7 +265,6 @@ trait HasCalculationTrait
         }
         $this->validateOnly('inputCumulativeFailure');
         $this->valueCumulativeFailure = $this->lambda * pow($this->inputCumulativeFailure, $this->slope);
-        // $this->valueCumulativeFailure = 0.005188 * pow(610, 1.300880);
         $this->setSession();
     }
 
@@ -287,7 +276,6 @@ trait HasCalculationTrait
         }
         $this->validateOnly('inputCumFailureRate');
         $this->valueCumFailureRate = ($this->lambda * pow($this->inputCumFailureRate, $this->slope)) / $this->inputCumFailureRate;
-        // $this->valueCumFailureRate = (0.005188 * pow($this->inputCumFailureRate, 1.300880)) / $this->inputCumFailureRate;
         $this->cumMtbf = 1 / $this->valueCumFailureRate;
         $this->setSession();
     }
@@ -297,7 +285,6 @@ trait HasCalculationTrait
         $this->validateOnly('inputExpectedNumberFailure1');
         $this->validateOnly('inputExpectedNumberFailure2');
         $this->valueExpectedNumberFailure = $this->lambda * (pow($this->inputExpectedNumberFailure2, $this->slope) - pow($this->inputExpectedNumberFailure1, $this->slope));
-        // $this->valueExpectedNumberFailure = 0.005188 * (pow(610, 1.300880) - pow(410, 1.300880));
         $this->setSession();
     }
 
@@ -306,8 +293,6 @@ trait HasCalculationTrait
         $this->validateOnly('inputExpectedReliabilityBetween1');
         $this->validateOnly('inputExpectedReliabilityBetween2');
         $this->valueExpectedReliabilityBetween = exp(-$this->lambda * (pow($this->inputExpectedReliabilityBetween2, $this->slope) - pow($this->inputExpectedReliabilityBetween1, $this->slope)));
-        // $this->valueExpectedReliabilityBetween = exp(-$this->lambda * (pow($this->inputExpectedReliabilityBetween1, $this->slope) - pow($this->inputExpectedReliabilityBetween2, $this->slope)));
-        // $this->valueExpectedReliabilityBetween = exp(-0.005188 * (pow(610, 1.300880) - pow(410, 1.300880)));
         $this->setSession();
     }
 

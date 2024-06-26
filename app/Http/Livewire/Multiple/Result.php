@@ -29,12 +29,7 @@ class Result extends Component
 
     public function mount()
     {
-
-        // dd('hello');
         $this->initData();
-        // $this->calculatePredictionNextFailure();
-        // $this->generateTable();
-
     }
 
     public function initData()
@@ -50,11 +45,11 @@ class Result extends Component
                 $this->failureTimes2 = $data['failureTimes2'];
             }
 
+            if (isset($data['failureTimes3'])) {
+                $this->failureTimes3 = $data['failureTimes3'];
+            }
+
             if (isset($data['results'])) {
-                // if (isset($results['numberOfFailure1']) && $results['numberOfFailure1'] <=0) {
-                //     //throw error
-                //     return;
-                // }
 
                 $results = $data['results'];
 
@@ -143,17 +138,21 @@ class Result extends Component
                 $this->cumulativeMtbfs = $results['cumulativeMtbfs'] ?? [];
                 $this->predictedNumberFailures = $results['predictedNumberFailures'] ?? [];
                 $this->times = $results['times'] ?? [];
+
+                $this->inputEndObservationTime();
+                $this->updateDataMtbf();
+                $this->updateDataPredictedNumberOfFailure();
             } else {
                 // throw error
             }
         } else {
             // throw error
         }
+
     }
 
     public function setSession()
     {
-        // if (session()->has('nhpp_multiple_data')) {
             $data = session()->get('nhpp_multiple_data');
 
             $new_data = [
@@ -172,11 +171,11 @@ class Result extends Component
                     'total' => $this->total,
                     'total1' => $this->total1,
                     'total2' => $this->total2,
+                    'total3' => $this->total3,
 
                     'totalFailure1' => $this->totalFailure1,
                     'totalFailure2' => $this->totalFailure2,
                     'totalFailure3' => $this->totalFailure3,
-                    'total3' => $this->total3,
 
                     'slope' => $this->slope,
                     'lambda' => $this->lambda,
@@ -244,9 +243,6 @@ class Result extends Component
             ];
 
             session()->put('nhpp_multiple_data', $new_data);
-        // } else {
-        //     //throw error
-        // }
     }
 
     public function checkBoxBounds()

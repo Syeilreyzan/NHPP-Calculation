@@ -11,7 +11,7 @@
                 <button class="inline-block rounded-t-xl py-2 px-4 font-semibold border border-b-0 text-white hover:text-white hover:border hover:border-b-0"
                     :class="{ 'bg-blue-600 text-white border-blue-600 hover:text-white': tab == 'tab1'}"
                     @click.prevent="$wire.toggleTabMultiple('tab1')">
-                    {{ __('System') }}
+                    {{ __('Systems') }}
                 </button>
                 <button class="inline-block rounded-t-xl py-2 px-4 font-semibold border border-b-0 text-white hover:text-white hover:border hover:border-b-0"
                     :class="{ 'bg-blue-600 text-white border-blue-600 hover:text-white': tab == 'tab2'}"

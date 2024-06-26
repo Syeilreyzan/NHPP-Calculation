@@ -2,10 +2,13 @@
 
 namespace App\Http\Livewire\Multiple;
 
-use App\Traits\HasCalculationMultipleTrait;
-use App\Traits\HasCalculationTrait;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Carbon\Carbon;
 use Livewire\Component;
+use App\Traits\HasCalculationTrait;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use App\Traits\HasCalculationMultipleTrait;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class System extends Component
 {
@@ -15,12 +18,13 @@ class System extends Component
     public $data = [];
     public $data1 = [];
 
+    public $allData = [];
 
     protected $listeners = [
         'refreshPage',
         'refreshSystem',
         'mount',
-        'addRowHehe',
+        'generatePdf',
         'updateChartMtbf1' => 'updateDataMtbf',
         'updateDataPredictedNumberOfFailure1' => 'updateDataPredictedNumberOfFailure',
     ];
@@ -28,7 +32,6 @@ class System extends Component
     public function mount()
     {
         $this->initData();
-        // $this->emit("refreshComponent");
     }
 
     public function initData()
@@ -36,23 +39,11 @@ class System extends Component
         if (session()->has('nhpp_multiple_data')) {
             $data = session()->get('nhpp_multiple_data');
 
-            // if (isset($data['failureTimes1'])) {
-                $this->failureTimes1 = $data['failureTimes1'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
-            // }
-
-            // if (isset($data['failureTimes2'])) {
-                $this->failureTimes2 = $data['failureTimes2'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
-            // }
-
-            // if (isset($data['failureTimes3'])) {
-                $this->failureTimes3 = $data['failureTimes3'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
-            // }
+            $this->failureTimes1 = $data['failureTimes1'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
+            $this->failureTimes2 = $data['failureTimes2'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
+            $this->failureTimes3 = $data['failureTimes3'] ?? [['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0]];
 
             if (isset($data['results'])) {
-                // if (isset($results['numberOfFailure1']) && $results['numberOfFailure1'] <=0) {
-                //     //throw error
-                //     return;
-                // }
 
                 $results = $data['results'];
 
@@ -142,52 +133,28 @@ class System extends Component
             $this->calculateRowSystem1();
             $this->calculateRowSystem2();
             $this->calculateRowSystem3();
-            // if ($this->failureTimes1 > 0 && $this->failureTimes1 != 0) {
-                $this->failureTimes1[] = [
-                    'id' => 0,
-                    'cumulative_failure_time' => null,
-                    'time_between_failures' => 0,
-                    'natural_log_cum_failure_time' => 0,
-                ];
-            // }
-            // if (isset($this->failureTimes2) && end($this->failureTimes2) === null) {
-                # code...
-                $this->failureTimes2[] = [
-                    'id' => 0,
-                    'cumulative_failure_time' => null,
-                    'time_between_failures' => 0,
-                    'natural_log_cum_failure_time' => 0,
-                ];
-            // }
-            // if (isset($this->failureTimes3) && end($this->failureTimes3) === null) {
-                # code...
-                $this->failureTimes3[] = [
-                    'id' => 0,
-                    'cumulative_failure_time' => null,
-                    'time_between_failures' => 0,
-                    'natural_log_cum_failure_time' => 0,
-                ];
-            // }
-            // $this->calculateRowSystem($this->failureTimes2);
+
+            $this->failureTimes1[] = [
+                'id' => 0,
+                'cumulative_failure_time' => null,
+                'time_between_failures' => 0,
+                'natural_log_cum_failure_time' => 0,
+            ];
+
+            $this->failureTimes2[] = [
+                'id' => 0,
+                'cumulative_failure_time' => null,
+                'time_between_failures' => 0,
+                'natural_log_cum_failure_time' => 0,
+            ];
+
+            $this->failureTimes3[] = [
+                'id' => 0,
+                'cumulative_failure_time' => null,
+                'time_between_failures' => 0,
+                'natural_log_cum_failure_time' => 0,
+            ];
         } else {
-            // $this->failureTimes1[0] = [
-            //     'id' => 0,
-            //     'cumulative_failure_time' => null,
-            //     'time_between_failures' => 0,
-            //     'natural_log_cum_failure_time' => 0,
-            // ];
-            // $this->failureTimes2[0] = [
-            //     'id' => 0,
-            //     'cumulative_failure_time' => null,
-            //     'time_between_failures' => 0,
-            //     'natural_log_cum_failure_time' => 0,
-            // ];
-            // $this->failureTimes3[0] = [
-            //     'id' => 0,
-            //     'cumulative_failure_time' => null,
-            //     'time_between_failures' => 0,
-            //     'natural_log_cum_failure_time' => 0,
-            // ];
             $this->failureTimes1 = [
                 ['id' => 0, 'cumulative_failure_time' => null, 'time_between_failures' => 0, 'natural_log_cum_failure_time' => 0],
             ];
@@ -302,9 +269,32 @@ class System extends Component
         $data = session()->get('nhpp_multiple_data', []);
 
         unset($data[$system]);
-
         $data[$system] = [];
 
+        if($system == 'failureTime1'){
+            unset($data['results'][$this->numberOfFailure1]);
+            unset($data['results'][$this->total1]);
+            unset($data['results'][$this->totalFailure1]); // Remove from session results
+            $data['results'][$this->numberOfFailure1] = 0;
+            $data['results'][$this->total1] = 0;
+            $data['results'][$this->totalFailure1] = 0;
+        }
+        if($system == 'failureTime2'){
+            unset($data['results'][$this->numberOfFailure2]);
+            unset($data['results'][$this->total2]);
+            unset($data['results'][$this->totalFailure2]); // Remove from session results
+            $data['results'][$this->numberOfFailure2] = 0;
+            $data['results'][$this->total2] = 0;
+            $data['results'][$this->totalFailure2] = 0;
+        }
+        if($system == 'failureTime3'){
+            unset($data['results'][$this->numberOfFailure3]);
+            unset($data['results'][$this->total3]);
+            unset($data['results'][$this->totalFailure3]); // Remove from session results
+            $data['results'][$this->numberOfFailure3] = 0;
+            $data['results'][$this->total3] = 0;
+            $data['results'][$this->totalFailure3] = 0;
+        }
         session()->put('nhpp_multiple_data', $data);
 
         $this->$system = [];
@@ -312,63 +302,44 @@ class System extends Component
         $this->initData();
     }
 
-    public function isRefreshSystem($system)
-    {
-        $this->alert('warning', 'Refresh System?', [
-            'position' => 'center',
-            'toast' => false,
-            'timer' => false,
-            'text' => 'You will lose all the data.',
-            'timerProgressBar' => false,
-            'showCancelButton' => true,
-            'onDismissed' => '',
-            'cancelButtonText' => 'Cancel',
-            'showConfirmButton' => true,
-            'onConfirmed' => 'refreshSystem',
-            'confirmButtonText' => 'Confirm',
-            'system' => ['system'=> $system],
-        ]);
-    }
+    // {
+    //     $labels = [];
+    //     $dataInstantenousMtbfs = [];
+    //     $dataCumulativeMtbfs = [];
+    //     $time[] = $this->time;
 
-    public function updateDataMtbf()
-    {
-        $labels = [];
-        $dataInstantenousMtbfs = [];
-        $dataCumulativeMtbfs = [];
-        $time[] = $this->time;
+    //     foreach($this->instantenousMtbfs as $index => $instantenousMtbf) {
+    //         $labels[] = $this->times[$index];
+    //         $dataInstantenousMtbfs[] = $instantenousMtbf;
+    //     }
 
-        foreach($this->instantenousMtbfs as $index => $instantenousMtbf) {
-            $labels[] = $this->times[$index];
-            $dataInstantenousMtbfs[] = $instantenousMtbf;
-        }
+    //     foreach($this->cumulativeMtbfs as $index => $cumulativeMtbf) {
+    //         $dataCumulativeMtbfs[] = $cumulativeMtbf;
+    //     }
 
-        foreach($this->cumulativeMtbfs as $index => $cumulativeMtbf) {
-            $dataCumulativeMtbfs[] = $cumulativeMtbf;
-        }
+    //     $this->labels = json_encode($labels);
+    //     $this->data = json_encode($dataInstantenousMtbfs);
+    //     $this->data1 = json_encode($dataCumulativeMtbfs);
 
-        $this->labels = json_encode($labels);
-        $this->data = json_encode($dataInstantenousMtbfs);
-        $this->data1 = json_encode($dataCumulativeMtbfs);
+    //     $this->emit('updateChartMtbf', ['labels' => $this->labels, 'data' => $this->data, 'data1' => $this->data1 ]);
+    // }
 
-        $this->emit('updateChartMtbf', ['labels' => $this->labels, 'data' => $this->data, 'data1' => $this->data1 ]);
-    }
+    // public function updateDataPredictedNumberOfFailure()
+    // {
+    //     $times = [];
+    //     $dataPredictedNumberOfFailure = [];
+    //     $time[] = $this->time;
 
-    public function updateDataPredictedNumberOfFailure()
-    {
-        $times = [];
-        $dataPredictedNumberOfFailure = [];
-        $time[] = $this->time;
+    //     foreach($this->predictedNumberFailures as $index => $predictedNumberFailure) {
+    //         $times[] = $this->times[$index];
+    //         $dataPredictedNumberOfFailure[] = $predictedNumberFailure;
+    //     }
 
-        foreach($this->predictedNumberFailures as $index => $predictedNumberFailure) {
-            $times[] = $this->times[$index];
-            $dataPredictedNumberOfFailure[] = $predictedNumberFailure;
-        }
+    //     $this->times = $times;
+    //     $this->data = json_encode($dataPredictedNumberOfFailure);
 
-        $this->times = $times;
-        $this->data = json_encode($dataPredictedNumberOfFailure);
-
-        $this->emit('updateChartPredicted', ['times' => json_encode($times), 'data' => $this->data, 'data1' => $this->data1 ]);
-    }
+    //     $this->emit('updateChartPredicted', ['times' => json_encode($times), 'data' => $this->data, 'data1' => $this->data1 ]);
+    // }
 
     public function isRefreshPage()
     {
@@ -387,9 +358,58 @@ class System extends Component
         ]);
     }
 
-    public function refreshtable()
+    public function isGeneratePdf()
     {
+        if($this->endObservationTime == 0) {
+            return $this->alert('error', 'Please enter The End of Observation Time field.');
+        }else{
+            $this->alert('warning', 'Export to PDF?', [
+                'position' => 'center',
+                'toast' => false,
+                'timer' => false,
+                'timerProgressBar' => false,
+                'showCancelButton' => true,
+                'onDismissed' => '',
+                'cancelButtonText' => 'Cancel',
+                'showConfirmButton' => true,
+                'onConfirmed' => 'generatePdf',
+                'confirmButtonText' => 'Generate PDF',
+                'data'=> [
+                    'data' => $this->allData,
+                ],
+            ]);
+        }
+        Log::info('Generate PDF');
+    }
 
+    public function generatePdf($data)
+    {
+        $date = Carbon::now();
+        $data = [
+            'title' => 'NHPP Single System',
+            'date' => $date->format('j F Y, g:i:s a'),
+            'failureTimes1' => $this->failureTimes1,
+            'failureTimes2' => $this->failureTimes2,
+            'failureTimes3' => $this->failureTimes3,
+            'numberOfSystem' => $this->numberOfSystem,
+            'totalNumberOfFailureAllSystem' => $this->totalNumberOfFailureAllSystem,
+            'endObservationTime' => $this->endObservationTime,
+            'total' => $this->total,
+            'slope' => $this->slope,
+            'lambda' => $this->lambda,
+            'eta' => $this->eta,
+            'instantenousMtbfs' => $this->instantenousMtbfs,
+            'cumulativeMtbfs' => $this->cumulativeMtbfs,
+            'predictedNumberFailures' => $this->predictedNumberFailures,
+            'times' => $this->times,
+            'labels' => $this->labels,
+            'data' => $this->data,
+            'data1' => $this->data1,
+        ];
+        $this->allData = $data;
+
+        Session::flash('pdf_data_multiple', $data);
+        redirect()->route('generate-pdf-multiple');
     }
 
     public function refreshPage()

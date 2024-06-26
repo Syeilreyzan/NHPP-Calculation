@@ -1,8 +1,8 @@
 <div>
     <div class="flex flex-col gap-4 w-full mt-14">
         <div class="flex flex-col bg-white rounded-t-xl overflow-auto">
-            <div class="w-full flex flex-col gap-4">
-                <div class="grid grid-cols-3 gap-2 w-full overflow-auto">
+            <div class="w-full flex flex-col gap-4 overflow-y-auto min-h-[30vh]">
+                <div class="grid grid-cols-3 gap-2 w-full">
                     <div class="">
                         <x-subtitle class="text-center"  title="System 1" />
                         <table class="w-full border-separate border-gray-500">
@@ -52,7 +52,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        @if (isset($failureTimes1) && $failureTimes1 > 0)
+                        @if (count($failureTimes1) > 1)
                             <div class="flex justify-end pt-1">
                                 <button
                                     wire:click="refreshSystem('failureTimes1')"
@@ -112,7 +112,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        @if ($failureTimes2 > 0)
+                        @if (count($failureTimes2) > 1)
                             <div class="flex justify-end pt-1">
                                 <button
                                     wire:click="refreshSystem('failureTimes2')"
@@ -173,7 +173,7 @@
                                 @endforeach
                             </tbody>
                         </table>
-                        @if ($failureTimes3 > 0)
+                        @if (count($failureTimes3) > 1)
                             <div class="flex justify-end pt-1">
                                 <button
                                 wire:click="refreshSystem('failureTimes3')" class="disabled:bg-gray-200 disabled:text-gray-500  bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
@@ -181,71 +181,11 @@
                             </button>
                             </div>
                         @endif
+                        {{ $total3 }}
                     </div>
                 </div>
-
-
-                {{-- <div class="w-5/12 flex flex-col justify-center gap-4">
-                    <div class="flex justify-end gap-2">
-                        <div x-data="{ refreshPage: 'Refresh!' }">
-                            <button x-tooltip="refreshPage"
-                                @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
-                                wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
-                                <x-icons.refresh />
-                            </button>
-                        </div>
-                        <div x-data="{ generatePdf: 'Export to PDF' }">
-                            <button x-tooltip="generatePdf"
-                                @if ($times == null) disabled @endif
-                                wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
-                                <x-icons.document />
-                            </button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2 h-auto">
-                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#c8eceea5] text-[#22B8BE]">
-                            <div class="text-lg">
-                                {{ $totalNumberOfFailureAllSystem }}
-                            </div>
-                            {{ __('No. of failure (n)') }}
-                        </div>
-
-                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#fdf4b2] text-[#d1b200]">
-                            <input
-                                wire:keydown.enter="inputEndObservationTime()"
-                                wire:model="endObservationTime"
-                                type="text"
-                                placeholder="0"
-                                class="border-[#ffe93f] rounded-lg w-24 text-center bg-[#fdf4b2]"
-                                @if($endObservationTime == 0) onfocus="this.value=''" @endif
-                            >
-                            @error('endObservationTime')
-                                <span class="text-red-500">{{ $message }}</span>
-                            @enderror
-                            {{ __('End of obervation time (T*)') }}
-                        </div>
-
-                        <div class="flex flex-col shadow-md items-center py-4 rounded-lg bg-[#e4e4e4] text-[#8F8F8F]">
-                            <div class="text-lg">
-                                {{ number_format($total , 2) }}
-                            </div>
-                            {{ __('Sum of In(Cum. TTF)') }}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <p>{{ $numberOfFailure1 }}</p>
-                    <p>{{ $numberOfFailure2 }}</p>
-
-                    <p>{{ $totalNumberOfFailureAllSystem }}</p>
-
-                    <p>{{ number_format($total,2) }} total</p>
-                    <p>{{ $total2 }} total2</p>
-                </div> --}}
-
-
             </div>
-            <div class="flex gap-4 p-2">
+            <div class="relative flex gap-4 p-2">
                 <div x-data="{
                     dropdown: false,
                     hover: false,
@@ -253,7 +193,7 @@
                     openModalChart1: false,
                     openModalBothChart: false,
                     }"
-                    class="relative flex" x-cloak>
+                    class=" flex" x-cloak>
                     <div>
                         <button
                             @if($time == 0 ||$increment == 0 || $tableRows == 0) disabled @endif
@@ -269,7 +209,7 @@
                         </button>
                     </div>
 
-                    <div x-show="dropdown" class="absolute top-10 flex flex-col text-sm text-left bg-white rounded-lg border border-blue-600 divide-y divide-blue-600">
+                    <div x-show="dropdown" class="absolute top-12 flex flex-col text-sm text-left bg-white rounded-lg border border-blue-600 divide-y divide-blue-600">
                         <button @click="openModalBothChart = ! openModalBothChart"
                             class="rounded-t-md text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
                             {{ __('Print Both Chart') }}
@@ -383,14 +323,14 @@
                 <div class="flex justify-end gap-2">
                     <div x-data="{ refreshPage: 'Refresh!' }">
                         <button x-tooltip="refreshPage"
-                            @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
+                            @if ($totalNumberOfFailureAllSystem == 0) disabled @endif
                             wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
                             <x-icons.refresh />
                         </button>
                     </div>
                     <div x-data="{ generatePdf: 'Export to PDF' }">
                         <button x-tooltip="generatePdf"
-                            @if ($times == null) disabled @endif
+                            {{-- @if ($times == null) disabled @endif --}}
                             wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
                             <x-icons.document />
                         </button>

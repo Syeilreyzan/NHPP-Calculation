@@ -91,25 +91,18 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if (count($failureTimes) > 1)
+                            <div class="flex justify-end pt-1">
+                                <button
+                                    wire:click="refreshSystem('failureTimes')"
+                                    class="disabled:bg-gray-200 disabled:text-gray-500  bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                                    <x-icons.refresh />
+                                </button>
+                            </div>
+                        @endif
                 </div>
 
                 <div class="w-5/12 flex flex-col justify-center gap-4">
-                    <div class="flex justify-end gap-2">
-                        <div x-data="{ refreshPage: 'Refresh!' }">
-                            <button x-tooltip="refreshPage"
-                                @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
-                                wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
-                                <x-icons.refresh />
-                            </button>
-                        </div>
-                        <div x-data="{ generatePdf: 'Export to PDF' }">
-                            <button x-tooltip="generatePdf"
-                                @if ($times == null) disabled @endif
-                                wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
-                                <x-icons.document />
-                            </button>
-                        </div>
-                    </div>
                     <div class="grid grid-cols-1 gap-2 h-auto">
                         <div class="flex flex-col items-center py-4 rounded-t-xl bg-[#c8eceea5] text-[#22B8BE]">
                             <div class="text-lg">
@@ -144,136 +137,155 @@
             </div>
         </div>
 
-        <div x-data="{
-            dropdown: false,
-            hover: false,
-            openModalChart: false,
-            openModalChart1: false,
-            openModalBothChart: false,
-            }"
-            class="relative flex" x-cloak>
-            <div>
-                <button
-                    @if($time == 0 ||$increment == 0 || $tableRows == 0) disabled @endif
-                    @mouseleave="hover=false"
-                    @mouseover="hover = {{ $time == 0 ||$increment == 0 || $tableRows == 0 ? false : true }} "
-                    @click="dropdown = ! dropdown"
-                    @click.outside="dropdown = false"
-                    class="border border-blue-600 bg-white rounded-xl w-40 flex gap-2 justify-center items-center px-3 py-2 font-semibold text-sm text-blue-600 hover:border-gray-200 hover:bg-blue-600 hover:text-white disabled:border-gray-500 disabled:bg-gray-200 disabled:text-gray-500">
-                    {{ __('Print Chart') }}
-                    <div x-show="hover" >
-                        <x-icons.download-arrow class="!w-4 !h-4"/>
-                    </div>
-                </button>
-            </div>
-
-            <div x-show="dropdown" class="absolute top-10 flex flex-col text-sm text-left bg-white rounded-lg border border-blue-600 divide-y divide-blue-600">
-                <button @click="openModalBothChart = ! openModalBothChart"
-                    class="rounded-t-md text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
-                    {{ __('Print Both Chart') }}
-                </button>
-                <button @click="openModalChart = ! openModalChart"
-                    class="text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
-                    {{ __('Print Time vs MTBF only') }}
-                </button>
-
-                <button @click="openModalChart1 = ! openModalChart1"
-                    class="rounded-b-md text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
-                    {{ __('Print Time VS Predicted Number of Failure') }}
-                </button>
-            </div>
-
-            <div x-show="openModalChart" class="fixed z-50 overflow-x-hidden overflow-y-scroll inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
-                <div @click.outside="openModalChart = false"
-                    class="print:w-auto relative rounded-lg shadow w-[50%] flex flex-col gap-4 bg-white p-4 overflow-y-auto">
-                    <div class="hidden print:block">
-                        <span>{{ __('NHPP Single System') }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <div class="font-inter font-medium text-lg text-gray-900">
-                            {{ __('Time VS MTBF') }}
+        <div class="relative flex gap-3">
+            <div x-data="{
+                dropdown: false,
+                hover: false,
+                openModalChart: false,
+                openModalChart1: false,
+                openModalBothChart: false,
+                }"
+                class="flex" x-cloak>
+                <div>
+                    <button
+                        @if($time == 0 ||$increment == 0 || $tableRows == 0) disabled @endif
+                        @mouseleave="hover=false"
+                        @mouseover="hover = {{ $time == 0 ||$increment == 0 || $tableRows == 0 ? false : true }} "
+                        @click="dropdown = ! dropdown"
+                        @click.outside="dropdown = false"
+                        class="border border-blue-600 bg-white rounded-xl w-40 flex gap-2 justify-center items-center px-3 py-2 font-semibold text-sm text-blue-600 hover:border-gray-200 hover:bg-blue-600 hover:text-white disabled:border-gray-500 disabled:bg-gray-200 disabled:text-gray-500">
+                        {{ __('Print Chart') }}
+                        <div x-show="hover" >
+                            <x-icons.download-arrow class="!w-4 !h-4"/>
                         </div>
-                        <button @click="openModalChart = false" class="print:hidden p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
-                            <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
-                        </button>
-                    </div>
-                    <div class="pt-4 print:w-full border-t print:border-t-0">
-                        <canvas wire:ignore id="timeVsMtbfChart1"></canvas>
-                    </div>
-                    <div class="flex justify-end p-3 border-t print:border-t-0">
-                        <button
-                            onclick="window.print()"
-                            class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
-                            {{ __('Print Chart') }}
-                        </button>
-                    </div>
+                    </button>
                 </div>
-            </div>
 
-            <div x-show="openModalChart1" class="fixed z-50 overflow-x-hidden overflow-y-scroll inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
-                <div @click.outside="openModalChart1 = false" class="print:w-auto relative rounded-lg shadow w-[40%] flex flex-col gap-4 bg-white p-4 overflow-y-auto">
-                    <div class="hidden print:block">
-                        <span>{{ __('NHPP Single System') }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <div class="font-inter font-medium text-lg text-gray-900">
-                            {{ __('Time VS Predicted Number of Failure') }}
-                        </div>
-                        <button @click="openModalChart1 = false" class="print:hidden p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
-                            <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
-                        </button>
-                    </div>
-                    <div class="pt-4 print:w-full border-t">
-                        <canvas wire:ignore id="timeVsPredictedNumberOfFailureChart1"></canvas>
-                    </div>
-                    <div class="flex justify-end p-3 border-t">
-                        <button
-                            onclick="window.print()"
-                            class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
-                            {{ __('Print Chart') }}
-                        </button>
-                    </div>
+                <div x-show="dropdown" class="absolute top-12 flex flex-col text-sm text-left bg-white rounded-lg border border-blue-600 divide-y divide-blue-600">
+                    <button @click="openModalBothChart = ! openModalBothChart"
+                        class="rounded-t-md text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
+                        {{ __('Print Both Chart') }}
+                    </button>
+                    <button @click="openModalChart = ! openModalChart"
+                        class="text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
+                        {{ __('Print Time vs MTBF only') }}
+                    </button>
+
+                    <button @click="openModalChart1 = ! openModalChart1"
+                        class="rounded-b-md text-left px-3 py-2 text-blue-600 bg-white hover:bg-blue-600 hover:text-white">
+                        {{ __('Print Time VS Predicted Number of Failure') }}
+                    </button>
                 </div>
-            </div>
 
-            <div x-show="openModalBothChart" class="fixed z-50 overflow-x-hidden overflow-y-hidden inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
-                <div @click.outside="openModalBothChart = false" class="print:w-auto relative overflow-y-scroll rounded-lg shadow w-[50%] min-h-[50vh] max-h-[90vh] flex flex-col gap-4 bg-white p-4">
-                    <div class="hidden print:block">
-                        <span>{{ __('NHPP Single System') }}</span>
-                    </div>
-                    <div class="print:hidden flex justify-between">
-                        <div class="font-inter font-medium text-lg text-gray-900">
-                            {{ __('Print Both Charts') }}
+                <div x-show="openModalChart" class="fixed z-50 overflow-x-hidden overflow-y-scroll inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
+                    <div @click.outside="openModalChart = false"
+                        class="print:w-auto relative rounded-lg shadow w-[50%] flex flex-col gap-4 bg-white p-4 overflow-y-auto">
+                        <div class="hidden print:block">
+                            <span>{{ __('NHPP Single System') }}</span>
                         </div>
-                        <button @click="openModalBothChart = false" class="p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
-                            <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
-                        </button>
-                    </div>
-                    <div class="max-h-[80vh] min-h-[50vh] overflow-auto">
                         <div class="flex justify-between">
                             <div class="font-inter font-medium text-lg text-gray-900">
                                 {{ __('Time VS MTBF') }}
                             </div>
+                            <button @click="openModalChart = false" class="print:hidden p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
+                                <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
+                            </button>
                         </div>
-                        <div class="pt-4 print:w-full border-t">
-                            <canvas wire:ignore id="timeVsMtbfChart2"></canvas>
+                        <div class="pt-4 print:w-full border-t print:border-t-0">
+                            <canvas wire:ignore id="timeVsMtbfChart1"></canvas>
+                        </div>
+                        <div class="flex justify-end p-3 border-t print:border-t-0">
+                            <button
+                                onclick="window.print()"
+                                class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
+                                {{ __('Print Chart') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="openModalChart1" class="fixed z-50 overflow-x-hidden overflow-y-scroll inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
+                    <div @click.outside="openModalChart1 = false" class="print:w-auto relative rounded-lg shadow w-[40%] flex flex-col gap-4 bg-white p-4 overflow-y-auto">
+                        <div class="hidden print:block">
+                            <span>{{ __('NHPP Single System') }}</span>
                         </div>
                         <div class="flex justify-between">
                             <div class="font-inter font-medium text-lg text-gray-900">
                                 {{ __('Time VS Predicted Number of Failure') }}
                             </div>
+                            <button @click="openModalChart1 = false" class="print:hidden p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
+                                <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
+                            </button>
                         </div>
                         <div class="pt-4 print:w-full border-t">
-                            <canvas wire:ignore id="timeVsPredictedNumberOfFailureChart2"></canvas>
+                            <canvas wire:ignore id="timeVsPredictedNumberOfFailureChart1"></canvas>
+                        </div>
+                        <div class="flex justify-end p-3 border-t">
+                            <button
+                                onclick="window.print()"
+                                class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
+                                {{ __('Print Chart') }}
+                            </button>
                         </div>
                     </div>
-                    <div class="flex justify-end p-3 border-t">
-                        <button
-                            onclick="window.print()"
-                            class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
-                            {{ __('Print Chart') }}
-                        </button>
+                </div>
+
+                <div x-show="openModalBothChart" class="fixed z-50 overflow-x-hidden overflow-y-hidden inset-0 h-screen bg-gray-600 bg-opacity-50 justify-center print:justify-start print:pt-10 items-center flex flex-col gap-2">
+                    <div @click.outside="openModalBothChart = false" class="print:w-auto relative overflow-y-scroll rounded-lg shadow w-[50%] min-h-[50vh] max-h-[90vh] flex flex-col gap-4 bg-white p-4">
+                        <div class="hidden print:block">
+                            <span>{{ __('NHPP Single System') }}</span>
+                        </div>
+                        <div class="print:hidden flex justify-between">
+                            <div class="font-inter font-medium text-lg text-gray-900">
+                                {{ __('Print Both Charts') }}
+                            </div>
+                            <button @click="openModalBothChart = false" class="p-1 rounded-lg hover:bg-gray-300 hover:text-red-500">
+                                <x-icons.xmark class="w-4 h-4 cursor-pointer "/>
+                            </button>
+                        </div>
+                        <div class="max-h-[80vh] min-h-[50vh] overflow-auto">
+                            <div class="flex justify-between">
+                                <div class="font-inter font-medium text-lg text-gray-900">
+                                    {{ __('Time VS MTBF') }}
+                                </div>
+                            </div>
+                            <div class="pt-4 print:w-full border-t">
+                                <canvas wire:ignore id="timeVsMtbfChart2"></canvas>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="font-inter font-medium text-lg text-gray-900">
+                                    {{ __('Time VS Predicted Number of Failure') }}
+                                </div>
+                            </div>
+                            <div class="pt-4 print:w-full border-t">
+                                <canvas wire:ignore id="timeVsPredictedNumberOfFailureChart2"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex justify-end p-3 border-t">
+                            <button
+                                onclick="window.print()"
+                                class="print:hidden w-auto px-4 py-2 border border-blue-600 text-blue-600 bg-white rounded-lg cursor-pointer text-sm hover:bg-blue-600 hover:text-white hover:border-white">
+                                {{ __('Print Chart') }}
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <div x-data="{ refreshPage: 'Refresh!' }">
+                    <button x-tooltip="refreshPage"
+                        @if ($slope == 0 || $lambda == 0 || $eta == 0) disabled @endif
+                        wire:click="isRefreshPage" class="disabled:bg-gray-200 disabled:text-gray-500 bg-red-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                        <x-icons.refresh />
+                    </button>
+                </div>
+                <div x-data="{ generatePdf: 'Export to PDF' }">
+                    <button x-tooltip="generatePdf"
+                        @if ($times == null) disabled @endif
+                        wire:click="isGeneratePdf" class="disabled:bg-gray-200 disabled:text-gray-500 bg-green-200 p-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 hover:text-blue-500">
+                        <x-icons.document />
+                    </button>
                 </div>
             </div>
         </div>

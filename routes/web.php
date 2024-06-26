@@ -35,7 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
-Route::get('/generate-pdf', [PDFController::class, 'generatePDF'])->name('generate-pdf');
+Route::get('/generate-pdf', [PDFController::class, 'generatePdf'])->name('generate-pdf');
+Route::get('/generate-pdf-multiple', [PDFController::class, 'generatePdfMultiple'])->name('generate-pdf-multiple');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
