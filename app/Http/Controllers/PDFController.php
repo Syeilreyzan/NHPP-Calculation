@@ -13,10 +13,9 @@ class PDFController extends Controller
         if (session('pdf_data')) {
             $data = session('pdf_data');
             $date = date('dmy-His', strtotime($data['date']));
-            $filename = 'time-table-' . $date . '.pdf';
+            $filename = 'single-system' . $date . '.pdf';
             $pdf = PDF::loadView('pdf.pdfView', $data);
-            // return $pdf->download($filename);
-            return $pdf->stream();
+            return $pdf->download($filename);
         } else {
             return redirect()->route('dashboard');
         }
@@ -28,10 +27,9 @@ class PDFController extends Controller
         if(session('pdf_data_multiple')){
             $dataMultiple = session('pdf_data_multiple');
             $date = date('dmy-His', strtotime($dataMultiple['date']));
-            $filename = 'time-table-' . $date . '.pdf';
+            $filename = 'multi-system' . $date . '.pdf';
             $pdf = PDF::loadView('pdf.pdfViewMultiple', $dataMultiple);
-            // return $pdf->download($filename);
-            return $pdf->stream();
+            return $pdf->download($filename);
         } else {
             return redirect()->route('multiple-system');
         }
